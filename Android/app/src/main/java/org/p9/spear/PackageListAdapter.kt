@@ -1,12 +1,14 @@
 package org.p9.spear
 
 import android.annotation.SuppressLint
+import android.graphics.drawable.BitmapDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Switch
 import android.widget.TextView
+import androidx.core.graphics.drawable.toBitmap
 import androidx.recyclerview.widget.RecyclerView
 
 class PackageListAdapter(initChecklist: String, onChecklistUpdate: (String, Boolean) -> Unit) : RecyclerView.Adapter<PackageListAdapter.PackageListViewHolder>() {
@@ -28,7 +30,7 @@ class PackageListAdapter(initChecklist: String, onChecklistUpdate: (String, Bool
 
     override fun onBindViewHolder(holder: PackageListViewHolder, position: Int) {
         val pkg = packageList[position]
-        holder.icon.setImageDrawable(pkg.icon)
+        holder.icon.setImageBitmap(pkg.icon.toBitmap())
         holder.name.text = pkg.name
 
         holder.enableListener = false

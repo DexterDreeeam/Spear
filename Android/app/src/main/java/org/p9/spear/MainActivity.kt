@@ -1,47 +1,31 @@
 package org.p9.spear
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Color
-import androidx.appcompat.app.AppCompatActivity
+import android.net.VpnService
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
-import android.widget.Switch
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import org.p9.spear.constant.VPN_END_ACTION
+import org.p9.spear.constant.VPN_PROFILE_REQUEST
+import org.p9.spear.constant.VPN_START_ACTION
+import org.p9.spear.entity.ConnectStatus
 import org.p9.spear.entity.Package
-
-enum class ConnectStatus {
-    Loading,
-    Disconnect,
-    Connecting,
-    Connected,
-    Disconnecting,
-}
-
-enum class ProxyMode {
-    Global,
-    Package;
-
-    companion object {
-        fun fromString(modeStr: String): ProxyMode {
-            return when (modeStr) {
-                Global.toString() -> Global
-                Package.toString() -> Package
-                else -> Global
-            }
-        }
-    }
-}
+import org.p9.spear.entity.ProxyMode
 
 class MainActivity : AppCompatActivity() {
-    private val TAG = "SPEAR_MAIN_ACTIVITY"
 
     private lateinit var centerAddress: EditText
     private lateinit var proxyToken: EditText
@@ -49,13 +33,21 @@ class MainActivity : AppCompatActivity() {
     private lateinit var modeButton: Button
     private lateinit var packages: RecyclerView
 
+    private lateinit var notificationReceiver: BroadcastReceiver
     private lateinit var sharedPreferences: SharedPreferences
     private var connectStatus: ConnectStatus = ConnectStatus.Disconnect
     private var proxyMode: ProxyMode = ProxyMode.Global
 
+    var vpnRequestContent = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+        isGranted: Boolean -> if (isGranted) { connect() }
+    }
+
     @SuppressLint("QueryPermissionsNeeded")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        notificationReceiver = NotificationReceiver() {
+            act, result -> receiveResult(act, result)
+        }
         sharedPreferences = getSharedPreferences("SpearSharedPreferences", MODE_PRIVATE)
 
         setContentView(R.layout.activity_main)
@@ -89,10 +81,10 @@ class MainActivity : AppCompatActivity() {
         actionButton.setOnClickListener {
             when (connectStatus) {
                 ConnectStatus.Disconnect -> {
-                    updateStatus(ConnectStatus.Connected)
+                    connect()
                 }
                 ConnectStatus.Connected -> {
-                    updateStatus(ConnectStatus.Disconnect)
+                    disconnect()
                 }
                 else -> {}
             }
@@ -105,6 +97,73 @@ class MainActivity : AppCompatActivity() {
         var modeStr = getStorage("proxy_mode", ProxyMode.Global.toString())
         updateMode(ProxyMode.fromString(modeStr))
         updateStatus(ConnectStatus.Disconnect)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val filter = IntentFilter()
+        filter.addAction(VPN_START_ACTION)
+        filter.addAction(VPN_END_ACTION)
+        registerReceiver(notificationReceiver, filter)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        unregisterReceiver(notificationReceiver)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            VPN_PROFILE_REQUEST -> startService()
+        }
+    }
+
+    private fun connect() {
+        val prepareIntent = VpnService.prepare(this)
+        if (prepareIntent != null) {
+            startActivityForResult(prepareIntent, VPN_PROFILE_REQUEST)
+        } else {
+            startService()
+        }
+    }
+
+    private fun disconnect() {
+        endService()
+    }
+
+    private fun startService() {
+        updateStatus(ConnectStatus.Connecting)
+        val it = Intent(this, SpearVpn::class.java)
+        it.action = VPN_START_ACTION
+        startService(it)
+    }
+
+    private fun endService() {
+        updateStatus(ConnectStatus.Disconnecting)
+        val it = Intent(this, SpearVpn::class.java)
+        it.action = VPN_END_ACTION
+        startService(it)
+    }
+
+    private fun receiveResult(action: String, result: Boolean) {
+        when (action) {
+            VPN_START_ACTION -> {
+                if (result) {
+                    updateStatus(ConnectStatus.Connected)
+                } else {
+                    updateStatus(ConnectStatus.Disconnect)
+                }
+            }
+            VPN_END_ACTION -> {
+                if (result) {
+                    updateStatus(ConnectStatus.Disconnect)
+                } else {
+                    updateStatus(ConnectStatus.Connected)
+                }
+            }
+            else -> {}
+        }
     }
 
     private fun updateStatus(status: ConnectStatus) {
@@ -151,12 +210,12 @@ class MainActivity : AppCompatActivity() {
         when (mode) {
             ProxyMode.Global -> {
                 packages.visibility = View.GONE
-                modeButtonStr = "Global"
+                modeButtonStr = "Global Mode"
             }
             ProxyMode.Package -> {
                 loadPackages()
                 packages.visibility = View.VISIBLE
-                modeButtonStr = "Apps"
+                modeButtonStr = "Apps Mode"
             }
         }
         modeButton.text = modeButtonStr
@@ -175,7 +234,8 @@ class MainActivity : AppCompatActivity() {
         val inactivePackages = mutableListOf<Package>()
         for (packageInfo in pm.getInstalledPackages(PackageManager.GET_META_DATA)) {
             val name = packageInfo.packageName
-            val icon = pm.getApplicationIcon(packageName)
+            pm.getLaunchIntentForPackage(name)?.component?.className ?: continue
+            val icon = pm.getApplicationIcon(name)
             if (checklistSet.contains(name)) {
                 activePackages.add(Package(name, icon))
             } else {
