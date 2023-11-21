@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "org.p9.speet"
+    namespace = "org.p9.spear"
     compileSdk = 33
 
     defaultConfig {
-        applicationId = "org.p9.speet"
+        applicationId = "org.p9.spear"
         minSdk = 24
         targetSdk = 33
         versionCode = 1

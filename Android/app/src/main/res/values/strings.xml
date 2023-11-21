@@ -1,8 +1,10 @@
 <resources>
-    <string name="app_name">Speet</string>
+    <string name="app_name">Spear</string>
 
     <string name="center_address">Center</string>
-    <string name="center_address_hint">www.speet-global.com</string>
+    <string name="center_address_hint">www.spear-global.com</string>
     <string name="proxy_token">Proxy</string>
     <string name="proxy_token_hint">your proxy token</string>
+
+    <string name="button_text_placeholder">Button</string>
 </resources>
