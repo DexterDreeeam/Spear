@@ -5,6 +5,8 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
+import org.p9.spear.component.Gateway
+import org.p9.spear.component.IGateway
 import org.p9.spear.constant.VPN_END_ACTION
 import org.p9.spear.constant.VPN_START_ACTION
 import org.p9.spear.entity.ProxyMode
@@ -28,7 +30,10 @@ class SpearVpn : VpnService() {
 
     private lateinit var appsList: List<String>
 
+    private lateinit var gateway: IGateway
+
     override fun onCreate() {
+        super.onCreate()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -69,17 +74,18 @@ class SpearVpn : VpnService() {
             }
             appsList = checklist
         }
+
+        gateway = Gateway(this, endpoint)
     }
 
     private fun connect() {
         loadConfigs()
         vpnInterface = createVpnInterface()
-        val fileDescriptor = vpnInterface.fileDescriptor
-        val thread = Thread(Gateway(), "ToyVpnThread")
-        thread.start()
+        gateway.start(vpnInterface.fileDescriptor)
     }
 
     private fun disconnect() {
+        gateway.stop()
         vpnInterface.close()
         System.gc()
     }
