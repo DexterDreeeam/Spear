@@ -1,0 +1,19 @@
+{
+    "tasks": [
+        {
+            "label": "build",
+            "type": "cppbuild",
+            "command": "g++",
+            "args": [
+                "-Wall",
+                "-o",
+                "spear_server",
+                "./main.cpp"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        }
+    ],
+    "version": "2.0.0"
+}
