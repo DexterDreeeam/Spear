@@ -62,7 +62,7 @@ class SpearVpn : VpnService() {
 
     private fun loadConfigs() {
         val sharedPreferences = getSharedPreferences("SpearSharedPreferences", MODE_PRIVATE)
-        endpoint = sharedPreferences.getString("endpoint", "").toString()
+        endpoint = "20.255.49.236:22333" // sharedPreferences.getString("endpoint", "").toString()
         proxyMode = ProxyMode.fromString(sharedPreferences.getString("proxy_mode", "").toString())
         appsList = listOf()
 

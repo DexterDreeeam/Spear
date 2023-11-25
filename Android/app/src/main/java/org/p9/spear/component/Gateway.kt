@@ -17,7 +17,6 @@ abstract class IGateway : Runnable {
     var subGateways = mutableListOf<IGateway>()
     protected lateinit var fd: FileDescriptor
     private lateinit var thread: Thread
-    private var overrideIterate: Boolean = true
 
     protected open fun setup() {}
 
@@ -28,9 +27,9 @@ abstract class IGateway : Runnable {
             throw IllegalStateException("Running already")
         }
 
+        this.fd = fd
         running = null
         setup()
-        this.fd = fd
         thread = Thread(this).apply { start() }
         subGateways.forEach { g -> g.start(fd) }
     }
@@ -46,15 +45,19 @@ abstract class IGateway : Runnable {
 
     override fun run() {
         running = true
-        var first = true
-        while (!this.thread.isInterrupted && overrideIterate && iterate(first)) {
-            first = false
+        if (firstIterate()) {
+            while (!this.thread.isInterrupted && iterate()) {
+            }
         }
+        clean()
         running = false
     }
 
-    protected open fun iterate(firstTime: Boolean): Boolean {
-        overrideIterate = false
+    protected open fun firstIterate(): Boolean {
+        return true
+    }
+
+    protected open fun iterate(): Boolean {
         return true
     }
 }
@@ -67,7 +70,11 @@ class Gateway(vpn: VpnService, endpoint: String) : IGateway() {
         subGateways.clear()
         subGateways.add(GatewaySend(port))
         subGateways.add(GatewayReceive(port))
+    }
+
+    override fun firstIterate(): Boolean {
         port.connect()
+        return true
     }
 }
 
@@ -80,7 +87,7 @@ class GatewaySend(private val port: IPort) : IGateway() {
         stream = FileInputStream(fd)
     }
 
-    override fun iterate(firstTime: Boolean): Boolean {
+    override fun iterate(): Boolean {
         return try {
             Log.i("Gateway Send", "+++")
             val len = stream.read(buffer.array())
