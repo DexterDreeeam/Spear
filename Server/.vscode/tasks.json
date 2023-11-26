@@ -8,11 +8,24 @@
                 "-Wall",
                 "-o",
                 "spear_server",
-                "./main.cpp"
+                "*.cpp"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
             }
+        },
+        {
+            "label": "run",
+            "command": "./spear_server",
+            "args": [
+                "tun0",
+                "10.10.0.2",
+                "8.8.8.8"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
         }
     ],
     "version": "2.0.0"
