@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
+import android.util.Log
 import org.p9.spear.component.Gateway
 import org.p9.spear.component.IGateway
 import org.p9.spear.constant.VPN_END_ACTION
@@ -93,13 +94,17 @@ class SpearVpn : VpnService() {
     private fun createVpnInterface(): ParcelFileDescriptor {
         val builder = Builder()
         appsList.forEach {
-            app -> builder.addAllowedApplication(app)
+            app ->
+                if (app != "") {
+                    Log.i(javaClass.name, "Route for package: $app")
+                    builder.addAllowedApplication(app)
+                }
         }
 
         return builder
-            .addAddress("10.0.0.2", 32)
+            .addAddress("10.10.0.2", 32)
             .addRoute("0.0.0.0", 0)
-            //.addDnsServer(config.dnsServer)
+            .addDnsServer("8.8.8.8")
             .setSession("SpearVpnSession")
             .setBlocking(true)
             .setConfigureIntent(configureIntent)

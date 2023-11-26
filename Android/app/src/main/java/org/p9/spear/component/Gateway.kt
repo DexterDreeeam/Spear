@@ -89,16 +89,14 @@ class GatewaySend(private val port: IPort) : IGateway() {
 
     override fun iterate(): Boolean {
         return try {
-            Log.i("Gateway Send", "+++")
             val len = stream.read(buffer.array())
             if (len > 0) {
-                Log.i(javaClass.name, "iterate send buffer with len $len")
+                Log.i(javaClass.name, "+++ $len")
                 buffer.limit(len)
                 val packet = Packet(buffer)
                 port.send(packet)
                 buffer.clear()
             }
-            Log.i("Gateway Send", "---")
             true
         } catch (e: Exception) {
             false
@@ -113,6 +111,7 @@ class GatewayReceive(port: IPort) : IGateway() {
 
     init {
         port.onReceive = { packet, len ->
+            Log.i(javaClass.name, "--- $len")
             stream.write(packet.buffer.array(), 0, len)
             true
         }

@@ -88,7 +88,6 @@ class TestPort(vpn: VpnService, private val endpoint: String) : IPort(vpn) {
             val packet = Packet(ByteBuffer.allocate(UShort.MAX_VALUE.toInt()))
             val len = tunnel?.read(packet.buffer) ?: 0
             if (len > 0) {
-                Log.i(javaClass.name, "loop received packet with len $len")
                 if (onReceive?.invoke(packet, len) == false) {
                     break
                 }
