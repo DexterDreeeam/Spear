@@ -1,12 +1,14 @@
 #pragma once
 
 #include "env/headers_env.hpp"
+#include "TokenAuthenticator.hpp"
 
 SPEAR_BEG
 
 class ConnectionManager
 {
-    Config _config;
+    Config              _config;
+    TokenAuthenticator  _auth;
 
     ConnectionManager() :
         _config()
@@ -26,7 +28,7 @@ public:
             return;
         }
         auto* p = new ConnectionManager();
-        shared_ptr<ConnectionManager> ins(p);
+        ref<ConnectionManager> ins(p);
         if (!ins)
         {
             return;
@@ -35,12 +37,13 @@ public:
         ConnectionManager::Ins(ins);
     }
 
-    static shared_ptr<ConnectionManager> Ins(
-        shared_ptr<ConnectionManager> ins = nullptr)
+    static ref<ConnectionManager> Ins(
+        ref<ConnectionManager> ins = nullptr)
     {
-        static  shared_ptr<ConnectionManager> _ins = nullptr;
+        static ref<ConnectionManager> _ins = nullptr;
         return _ins ? _ins : _ins = ins;
     }
+
 };
 
 SPEAR_END

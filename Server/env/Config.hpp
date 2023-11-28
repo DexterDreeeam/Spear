@@ -6,9 +6,9 @@ SPEAR_BEG
 
 struct Config
 {
-    string tun;
-    string address;
-    string dns;
+    std::string tun;
+    std::string address;
+    std::string dns;
 
     Config() :
         tun(),

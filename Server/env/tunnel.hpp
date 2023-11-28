@@ -4,7 +4,7 @@
 
 SPEAR_BEG
 
-inline int build_tunnel(const string& tunName)
+inline int build_tunnel(const std::string& tunName)
 {
     int tun = open("/dev/net/tun", O_RDWR | O_NONBLOCK);
     ifreq ifr = {};

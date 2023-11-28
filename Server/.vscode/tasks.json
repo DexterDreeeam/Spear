@@ -1,22 +1,30 @@
 {
     "tasks": [
         {
+            "label": "create-build-folder",
+            "type": "shell",
+            "command": "mkdir -p build",
+            "group": "build"
+        },
+        {
             "label": "build",
             "type": "cppbuild",
+            "dependsOn": ["create-build-folder"],
             "command": "g++",
             "args": [
                 "-Wall",
                 "-o",
-                "spear_server",
+                "./build/spear_server",
                 "*.cpp"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
-            }
+            },
+            "group": "build"
         },
         {
             "label": "run",
-            "command": "./spear_server",
+            "command": "./build/spear_server",
             "args": [
                 "tun0",
                 "10.10.0.2",
