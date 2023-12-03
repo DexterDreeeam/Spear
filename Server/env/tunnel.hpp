@@ -16,4 +16,12 @@ inline int build_tunnel(const std::string& tunName)
     return tun;
 }
 
+inline void destroy_tunnel(int tunnel)
+{
+    if (tunnel > 0)
+    {
+        close(tunnel);
+    }
+}
+
 SPEAR_END

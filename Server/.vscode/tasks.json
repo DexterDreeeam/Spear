@@ -3,7 +3,29 @@
         {
             "label": "create-build-folder",
             "type": "shell",
-            "command": "mkdir -p build",
+            "command": "mkdir -p .build",
+            "group": "build"
+        },
+        {
+            "label": "check",
+            "type": "cppbuild",
+            "dependsOn": ["create-build-folder"],
+            "command": "g++",
+            "args": [
+                "-Werror",
+                "-o",
+                "./.build/spear_server",
+                "-g",
+                "$(find",
+                "${workspaceFolder}",
+                "-type",
+                "f",
+                "-iregex",
+                "'.*\\.cpp')",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
             "group": "build"
         },
         {
@@ -14,8 +36,14 @@
             "args": [
                 "-Wall",
                 "-o",
-                "./build/spear_server",
-                "*.cpp"
+                "./.build/spear_server",
+                "-g",
+                "$(find",
+                "${workspaceFolder}",
+                "-type",
+                "f",
+                "-iregex",
+                "'.*\\.cpp')",
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
@@ -24,10 +52,11 @@
         },
         {
             "label": "run",
-            "command": "./build/spear_server",
+            "command": "./.build/spear_server",
             "args": [
                 "tun0",
                 "10.10.0.2",
+                "22333",
                 "8.8.8.8"
             ],
             "options": {
