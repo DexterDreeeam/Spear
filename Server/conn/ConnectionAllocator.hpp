@@ -19,6 +19,7 @@ public:
 private:
     static const int   MaxConnections = 256;
     std::mutex         _mtx;
+    int                _cnt;
     Worker             _workers[MaxConnections];
     State              _states[MaxConnections];
 

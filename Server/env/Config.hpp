@@ -4,6 +4,11 @@
 
 SPEAR_BEG
 
+static const std::string default_dns = "8.8.8.8";
+static const int max_conn_default = 256;
+static const int port_from_default = 22334;
+
+
 struct Config
 {
     std::string tun;
@@ -18,50 +23,60 @@ struct Config
         tun(),
         address(),
         port(),
-        dns(),
-        max_connection(256),
-        transport_port_from(22334)
+        dns(default_dns),
+        max_connection(max_conn_default),
+        transport_port_from(port_from_default)
     {}
 
     Config(int argc, char** argv) :
         tun(),
         address(),
         port(),
-        dns(),
-        max_connection(256),
-        transport_port_from(22334)
+        dns(default_dns),
+        max_connection(max_conn_default),
+        transport_port_from(port_from_default)
     {
-        int i = 1;
-        while (i < argc)
+        int i = 0;
+        while (++i < argc)
         {
-            const char* cstr = argv[i];
+            std::string a = argv[i];
+            if (a == "" || a == "*" || a == "/")
+            {
+                continue;
+            }
             switch (i)
             {
             case 1:
-                tun = cstr;
+                tun = a;
                 break;
             case 2:
-                address = cstr;
+                address = a;
                 break;
             case 3:
-                port = cstr;
+                port = a;
                 break;
             case 4:
-                dns = cstr;
+                dns = a;
+                break;
+            case 5:
+                max_connection = atoi(a.c_str());
+                break;
+            case 6:
+                transport_port_from = atoi(a.c_str());
                 break;
             default:
                 break;
             }
-            ++i;
         }
     }
 
     bool Empty() const
     {
-        return
+        return !(
             tun.length() &&
             address.length() &&
-            port.length();
+            port.length()
+        );
     }
 };
 

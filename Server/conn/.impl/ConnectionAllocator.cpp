@@ -6,6 +6,7 @@ using Worker = ConnectionAllocator::Worker;
 
 ConnectionAllocator::ConnectionAllocator() :
     _mtx(),
+    _cnt(0),
     _workers(),
     _states()
 {
@@ -16,7 +17,8 @@ bool ConnectionAllocator::Setup(
 {
     if (count < 1 || count > MaxConnections)
     {
-        ERR("w < 0 || w >= MaxConnections");
+        ERR("count < 1 || count > MaxConnections");
+        return false;
     }
     int w = 0;
     while (w < count)
@@ -25,14 +27,16 @@ bool ConnectionAllocator::Setup(
         _states[w] = State::Idle;
         ++w;
     }
+    _cnt = count;
     return true;
 }
 
 Worker ConnectionAllocator::AcquireWorker()
 {
     auto idle = this->_SearchIdleWorker();
-    if (idle.first < 0 || idle.second)
+    if (idle.first < 0 || !idle.second)
     {
+        ERR("idle.first < 0 || idle.second");
         return nullptr;
     }
     return idle.second;
@@ -60,10 +64,10 @@ void ConnectionAllocator::ReleaseWorker(Worker worker)
 std::pair<int, Worker> ConnectionAllocator::_SearchIdleWorker()
 {
     int w = 0;
-    int tries = 128;
+    int tries = _cnt;
     while (tries--)
     {
-        w = random() % MaxConnections;
+        w = random() % _cnt;
         if (_states[w] != State::Idle)
         {
             continue;

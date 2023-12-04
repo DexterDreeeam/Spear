@@ -16,8 +16,8 @@ class ConnectionManager
     bool                     _loop_running;
     std::thread              _loop;
 
-    ConnectionManager() :
-        _config(),
+    ConnectionManager(const Config& config) :
+        _config(config),
         _tunnel(-1),
         _sk_service(-1),
         _allocator(nullptr),
@@ -31,10 +31,7 @@ class ConnectionManager
 public:
     ~ConnectionManager()
     {
-        if (_loop_running && _loop.joinable())
-        {
-            _loop.join();
-        }
+        this->WaitComplete();
     }
 
 public:
@@ -68,7 +65,15 @@ public:
                 this->_loop_running = false;
             }
         );
-        _loop.detach();
+        // _loop.detach();
+    }
+
+    void WaitComplete()
+    {
+        if (_loop_running && _loop.joinable())
+        {
+            _loop.join();
+        }
     }
 
 private:

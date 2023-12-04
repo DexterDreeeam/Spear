@@ -10,7 +10,7 @@ void ConnectionManager::Setup(const Config& config)
         return;
     }
 
-    auto* p = new ConnectionManager();
+    auto* p = new ConnectionManager(config);
     auto ins = ref<ConnectionManager>(p);
     if (!ins || !ins->_Init(config))
     {
@@ -18,7 +18,6 @@ void ConnectionManager::Setup(const Config& config)
         return;
     }
 
-    ins->_config = config;
     ConnectionManager::Ins(ins);
 }
 
@@ -26,17 +25,20 @@ bool ConnectionManager::_Init(const Config& config)
 {
     if (_config.Empty())
     {
+        ERR("_config.Empty()");
         return false;
     }
 
     if (!_InitTunnel())
     {
+        ERR("!_InitTunnel()");
         return false;
     }
     escape_function ef_tunnel = [this]() { this->_UninitTunnel(); };
 
     if (!_InitService())
     {
+        ERR("!_InitService()");
         return false;
     }
     escape_function ef_service = [this]() { this->_UninitService(); };
@@ -60,6 +62,7 @@ bool ConnectionManager::_InitTunnel()
     int tunnel = build_tunnel(_config.tun);
     if (tunnel <= 0)
     {
+        ERR("tunnel <= 0");
         return false;
     }
     _tunnel = tunnel;

@@ -4,6 +4,8 @@
 
 int main(int argc, char** argv)
 {
+    // int test = spear::build_tunnel("tun0");
+    // LOG("%d", test);
     auto config = spear::Config(argc, argv);
     spear::ConnectionManager::Setup(config);
     if (!CM)
@@ -12,12 +14,9 @@ int main(int argc, char** argv)
         exit(1);
     }
 
-    int interface = spear::build_tunnel("tun0");
-    if (interface <= 0)
-    {
-        ERR("Cannot create interface");
-        exit(1);
-    }
+    CM->Run();
+    CM->WaitComplete();
+
     /*
     int sk = spear::create_socket();
     if (sk <= 0)
