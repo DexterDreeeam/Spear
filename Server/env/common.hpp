@@ -63,7 +63,7 @@ inline void sleep_ms(int ms)
 #define ERR(x, ...) \
     printf("[ERROR] %s: " x " Failed.\r\n", __FUNCTION__, ##__VA_ARGS__)
 
-#define \
-    LOG(x, ...) printf("%s: " x "\r\n", __FUNCTION__, ##__VA_ARGS__)
+#define LOG(x, ...) \
+    printf("%s: " x "\r\n", __FUNCTION__, ##__VA_ARGS__)
 
 SPEAR_END
