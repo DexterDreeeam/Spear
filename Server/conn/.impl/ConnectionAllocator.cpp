@@ -15,11 +15,8 @@ ConnectionAllocator::ConnectionAllocator() :
 bool ConnectionAllocator::Setup(
     ref<TokenAuthenticator> auth, int count, int port_from)
 {
-    if (count < 1 || count > MaxConnections)
-    {
-        ERR("count < 1 || count > MaxConnections");
-        return false;
-    }
+    RET(count < 1 || count > MaxConnections, false);
+
     int w = 0;
     while (w < count)
     {
@@ -34,31 +31,16 @@ bool ConnectionAllocator::Setup(
 Worker ConnectionAllocator::AcquireWorker()
 {
     auto idle = this->_SearchIdleWorker();
-    if (idle.first < 0 || !idle.second)
-    {
-        ERR("idle.first < 0 || idle.second");
-        return nullptr;
-    }
+    RET(idle.first < 0 || !idle.second, nullptr);
     return idle.second;
 }
 
 void ConnectionAllocator::ReleaseWorker(Worker worker)
 {
     int w = worker->Id();
-    if (w < 0 || w >= MaxConnections)
-    {
-        ERR("w < 0 || w >= MaxConnections");
-        return;
-    }
-    if (_states[w] != State::Disconnecting)
-    {
-        ERR("_states[w] != State::Disconnecting");
-        return;
-    }
-    if (!this->_ResetWorker(w))
-    {
-        ERR("!this->_ResetWorker(w)");
-    }
+    RET(w < 0 || w >= MaxConnections);
+    RET(_states[w] != State::Disconnecting);
+    RET(!this->_ResetWorker(w));
 }
 
 std::pair<int, Worker> ConnectionAllocator::_SearchIdleWorker()
@@ -87,10 +69,7 @@ std::pair<int, Worker> ConnectionAllocator::_SearchIdleWorker()
 bool ConnectionAllocator::_ResetWorker(int w)
 {
     auto _scope = this->_ScopeLock();
-    if (_states[w] != State::Disconnecting)
-    {
-        return false;
-    }
+    RET(_states[w] != State::Disconnecting, false);
     _workers[w]->Reset();
     _states[w] = State::Idle;
     return true;

@@ -1,5 +1,7 @@
 #pragma once
 
+SPEAR_BEG
+
 class escape_function
 {
     class internal_release_base
@@ -82,3 +84,7 @@ public:
 private:
     internal_release_base* _release;
 };
+
+using ef = escape_function;
+
+SPEAR_END

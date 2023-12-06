@@ -54,10 +54,12 @@
             "label": "run",
             "command": "./.build/spear_server",
             "args": [
-                "tun0",
-                "10.10.0.2",
-                "22333",
-                "8.8.8.8"
+                "-t", "tun0",
+                "-a", "10.10.0.2",
+                "-p", "22333",
+                "-d", "8.8.8.8",
+                "-f", "22334",
+                "-m", "256"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

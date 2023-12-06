@@ -2,19 +2,34 @@
 
 #include "../env/_headers.hpp"
 #include "../auth/_headers.hpp"
+#include "Buffer.hpp"
 #include "ConnectionAllocator.hpp"
 
 SPEAR_BEG
 
+// # Explain
+//
+//
+//             Arrive              Outgoing
+//           --------->          ----------->
+//   Client              Server                Tunnel
+//           <---------          <-----------
+//              Leave              Incomming
+//
+
 class ConnectionManager
 {
-    Config                   _config;
-    int                      _tunnel;
-    int                      _sk_service;
-    ref<ConnectionAllocator> _allocator;
-    ref<TokenAuthenticator>  _auth;
-    bool                     _loop_running;
-    std::thread              _loop;
+    Config                       _config;
+    int                          _tunnel;
+    int                          _sk_service;
+    ref<ConnectionAllocator>     _allocator;
+    ref<TokenAuthenticator>      _auth;
+    bool                         _loop_running;
+    std::thread                  _loop;
+    bool                         _incomming_running;
+    std::thread                  _incomming;
+
+    ConnectionAllocator::Worker  _test;
 
     ConnectionManager(const Config& config) :
         _config(config),
@@ -23,7 +38,10 @@ class ConnectionManager
         _allocator(nullptr),
         _auth(nullptr),
         _loop_running(false),
-        _loop()
+        _loop(),
+        _incomming_running(false),
+        _incomming(),
+        _test()
     {}
 
     ConnectionManager(const ConnectionManager&) = delete;
@@ -46,10 +64,7 @@ public:
 
     void Run()
     {
-        if (_loop_running)
-        {
-            return;
-        }
+        RET(_loop_running)
         _loop_running = true;
         _loop = std::thread(
             [this]()
@@ -82,7 +97,11 @@ private:
     void _UninitTunnel();
     bool _InitService();
     void _UninitService();
+
     void _Loop();
+    void _LoopIncomming();
+    void _LoopWorker();
+    void _Arrive(Buffer buf);
 };
 
 SPEAR_END

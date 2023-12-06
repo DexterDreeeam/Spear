@@ -4,53 +4,30 @@ SPEAR_BEG
 
 void ConnectionManager::Setup(const Config& config)
 {
-    if (ConnectionManager::Ins())
-    {
-        ERR("ConnectionManager::Ins()");
-        return;
-    }
+    RET(ConnectionManager::Ins());
 
     auto* p = new ConnectionManager(config);
     auto ins = ref<ConnectionManager>(p);
-    if (!ins || !ins->_Init(config))
-    {
-        ERR("!ins || !ins->_Init()");
-        return;
-    }
+    RET(!ins || !ins->_Init(config));
 
     ConnectionManager::Ins(ins);
 }
 
 bool ConnectionManager::_Init(const Config& config)
 {
-    if (_config.Empty())
-    {
-        ERR("_config.Empty()");
-        return false;
-    }
+    RET(_config.Empty(), false);
 
-    if (!_InitTunnel())
-    {
-        ERR("!_InitTunnel()");
-        return false;
-    }
-    escape_function ef_tunnel = [this]() { this->_UninitTunnel(); };
+    RET(!_InitTunnel(), false);
+    ef ef_tunnel = [this]() { this->_UninitTunnel(); };
 
-    if (!_InitService())
-    {
-        ERR("!_InitService()");
-        return false;
-    }
-    escape_function ef_service = [this]() { this->_UninitService(); };
+    RET(!_InitService(), false);
+    ef ef_service = [this]() { this->_UninitService(); };
 
     this->_auth = make_ref<TokenAuthenticator>();
     this->_allocator = make_ref<ConnectionAllocator>();
-    if (!this->_allocator->Setup(
-            _auth, config.max_connection, config.transport_port_from))
-    {
-        ERR("!ins->_allocator->Setup");
-        return false;
-    }
+    RET(!this->_allocator->Setup(
+            _auth, config.max_connection, config.transport_port_from),
+        false);
 
     ef_tunnel.disable();
     ef_service.disable();
@@ -60,11 +37,7 @@ bool ConnectionManager::_Init(const Config& config)
 bool ConnectionManager::_InitTunnel()
 {
     int tunnel = build_tunnel(_config.tun);
-    if (tunnel <= 0)
-    {
-        ERR("tunnel <= 0");
-        return false;
-    }
+    RET(tunnel <= 0, false);
     _tunnel = tunnel;
     return true;
 }
@@ -81,11 +54,7 @@ void ConnectionManager::_UninitTunnel()
 bool ConnectionManager::_InitService()
 {
     int sk = socket(AF_INET, SOCK_STREAM, 0);
-    if (sk <= 0)
-    {
-        ERR("socket");
-        return false;
-    }
+    RET(sk <= 0, false);
     _sk_service = sk;
 
     sockaddr_in addrin;
@@ -95,14 +64,9 @@ bool ConnectionManager::_InitService()
     addrin.sin_family = AF_INET;
     addrin.sin_addr.s_addr = htonl(INADDR_ANY);
     addrin.sin_port = htons(atoi(_config.port.c_str()));
-    if (bind(sk, addr, addrsz) != 0)
-    {
-        ERR("bind");
-    }
-    if (listen(sk, 5) != 0)
-    {
-        ERR("listen");
-    }
+
+    RET(bind(sk, addr, addrsz) != 0, false);
+    RET(listen(sk, 5) != 0, false);
     return true;
 }
 
@@ -117,22 +81,76 @@ void ConnectionManager::_UninitService()
 
 void ConnectionManager::_Loop()
 {
+    RET(_incomming_running)
+    _incomming_running = true;
+    _incomming = std::thread(
+        [this]()
+        {
+            try
+            {
+                this->_LoopIncomming();
+            }
+            catch (...)
+            {
+                ERR("this->_LoopIncomming() exception thrown");
+            }
+            _incomming_running = false;
+        });
+
+    this->_LoopWorker();
+
+    if (_incomming.joinable())
+    {
+        _incomming.join();
+    }
+}
+
+void ConnectionManager::_LoopIncomming()
+{
+    RET(_tunnel <= 0);
+    while (true)
+    {
+        Buffer buf(BUFFER_MAX_SIZE);
+        int len = read(_tunnel, buf.Pos(), buf.Len());
+        if (len <= 0)
+        {
+            sleep_ms(100);
+            continue;
+        }
+        buf.Set(len);
+        _test->Leave(buf);
+    }
+}
+
+void ConnectionManager::_LoopWorker()
+{
     int sk = _sk_service;
     while (true)
     {
         auto worker = _allocator->AcquireWorker();
+        _test = worker; // TEST
         if (!worker)
         {
             ERR("cannot acquire worker");
             sleep_ms(1000);
             continue;
         }
-        ConnectionWorker::Entry(
-            worker, sk, [=]()
+        ConnectionWorker::Entry(worker, sk,
+            [this](Buffer buf)
+            {
+                this->_Arrive(buf);
+            },
+            [=]()
             {
                 _allocator->ReleaseWorker(worker);
             });
     }
+}
+
+void ConnectionManager::_Arrive(Buffer buf)
+{
+    RET(_tunnel <= 0);
+    write(_tunnel, buf.Pos(), buf.Len());
 }
 
 SPEAR_END

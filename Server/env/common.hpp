@@ -66,4 +66,13 @@ inline void sleep_ms(int ms)
 #define LOG(x, ...) \
     printf("%s: " x "\r\n", __FUNCTION__, ##__VA_ARGS__)
 
+#define RET(x, ...) \
+    if (x) { \
+        ERR(#x); \
+        return __VA_ARGS__; \
+    }
+
+// Configuration
+static const int BUFFER_MAX_SIZE = 1 << 16;
+
 SPEAR_END

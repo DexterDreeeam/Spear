@@ -11,21 +11,20 @@ static const int port_from_default = 22334;
 
 struct Config
 {
-    std::string tun;
-    std::string address;
-    std::string port;
-    std::string dns;
-
-    int max_connection;
-    int transport_port_from;
+    std::string tun;             // -t
+    std::string address;         // -a
+    std::string port;            // -p
+    std::string dns;             // -d
+    int transport_port_from;     // -f
+    int max_connection;          // -m
 
     Config() :
         tun(),
         address(),
         port(),
         dns(default_dns),
-        max_connection(max_conn_default),
-        transport_port_from(port_from_default)
+        transport_port_from(port_from_default),
+        max_connection(max_conn_default)
     {}
 
     Config(int argc, char** argv) :
@@ -33,39 +32,43 @@ struct Config
         address(),
         port(),
         dns(default_dns),
-        max_connection(max_conn_default),
-        transport_port_from(port_from_default)
+        transport_port_from(port_from_default),
+        max_connection(max_conn_default)
     {
         int i = 0;
         while (++i < argc)
         {
-            std::string a = argv[i];
-            if (a == "" || a == "*" || a == "/")
+            std::string p = argv[i];
+            std::string s = i + 1 < argc ? argv[i + 1] : "";
+            if (p == "-t")
             {
-                continue;
+                tun = s;
+                ++i;
             }
-            switch (i)
+            else if (p == "-a")
             {
-            case 1:
-                tun = a;
-                break;
-            case 2:
-                address = a;
-                break;
-            case 3:
-                port = a;
-                break;
-            case 4:
-                dns = a;
-                break;
-            case 5:
-                max_connection = atoi(a.c_str());
-                break;
-            case 6:
-                transport_port_from = atoi(a.c_str());
-                break;
-            default:
-                break;
+                address = s;
+                ++i;
+            }
+            else if (p == "-p")
+            {
+                port = s;
+                ++i;
+            }
+            else if (p == "-d")
+            {
+                dns = s;
+                ++i;
+            }
+            else if (p == "-f")
+            {
+                transport_port_from = atoi(s.c_str());
+                ++i;
+            }
+            else if (p == "-m")
+            {
+                max_connection = atoi(s.c_str());
+                ++i;
             }
         }
     }
