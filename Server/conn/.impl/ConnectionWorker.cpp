@@ -4,7 +4,7 @@
 SPEAR_BEG
 
 void ConnectionWorker::Entry(
-    ref<Self> self, int sk_service, FnArrive arrive, FnExit exit)
+    int sk_service, FnArrive arrive, FnExit exit)
 {
     sockaddr_in addrin;
     sockaddr& addr = *(sockaddr*)&addrin;
@@ -12,13 +12,13 @@ void ConnectionWorker::Entry(
     int sk_client = accept(sk_service, &addr, &addrsz);
     RET(sk_client < 0);
 
-    self->_sk_msg = sk_client;
-    self->_loop = std::thread(
+    _sk_msg = sk_client;
+    _loop = std::thread(
         [=]()
         {
-            self->_Loop(arrive, exit);
+            this->_Loop(arrive, exit);
         });
-    self->_loop.detach();
+    _loop.detach();
 }
 
 // Leave:

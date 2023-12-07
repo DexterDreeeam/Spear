@@ -56,6 +56,8 @@ public:
         this->Reset();
     }
 
+    void Entry(int sk_service, FnArrive arrive, FnExit exit);
+
     int Id() const { return _id; }
 
     int Port() const { return _port; }

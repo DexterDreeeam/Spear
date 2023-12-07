@@ -135,7 +135,8 @@ void ConnectionManager::_LoopWorker()
             sleep_ms(1000);
             continue;
         }
-        ConnectionWorker::Entry(worker, sk,
+        worker->Entry(
+            sk,
             [this](Buffer buf)
             {
                 this->_Arrive(buf);
