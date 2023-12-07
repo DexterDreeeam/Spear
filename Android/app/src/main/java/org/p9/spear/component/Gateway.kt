@@ -18,10 +18,6 @@ abstract class IGateway : Runnable {
     protected lateinit var fd: FileDescriptor
     private lateinit var thread: Thread
 
-    protected open fun setup() {}
-
-    protected open fun clean() {}
-
     fun start(fd: FileDescriptor) {
         if (this::thread.isInitialized && thread.isAlive) {
             throw IllegalStateException("Running already")
@@ -43,15 +39,9 @@ abstract class IGateway : Runnable {
         }
     }
 
-    override fun run() {
-        running = true
-        if (firstIterate()) {
-            while (!this.thread.isInterrupted && iterate()) {
-            }
-        }
-        clean()
-        running = false
-    }
+    protected open fun setup() {}
+
+    protected open fun clean() {}
 
     protected open fun firstIterate(): Boolean {
         return true
@@ -59,6 +49,16 @@ abstract class IGateway : Runnable {
 
     protected open fun iterate(): Boolean {
         return true
+    }
+
+    final override fun run() {
+        running = true
+        if (firstIterate()) {
+            while (!this.thread.isInterrupted && iterate()) {
+            }
+        }
+        clean()
+        running = false
     }
 }
 

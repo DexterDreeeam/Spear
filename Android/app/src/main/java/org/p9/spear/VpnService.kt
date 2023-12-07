@@ -6,11 +6,14 @@ import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.util.Log
+import org.p9.spear.component.ConnectionKeeper
 import org.p9.spear.component.Gateway
 import org.p9.spear.component.IGateway
 import org.p9.spear.constant.VPN_END_ACTION
 import org.p9.spear.constant.VPN_START_ACTION
 import org.p9.spear.entity.ProxyMode
+import java.net.InetAddress
+import java.net.Socket
 
 class SpearVpn : VpnService() {
 
@@ -23,14 +26,11 @@ class SpearVpn : VpnService() {
             this, 0, Intent(this, MainActivity::class.java), activityFlag)
     }
 
+    private lateinit var connectionKeeper: ConnectionKeeper
     private lateinit var vpnInterface: ParcelFileDescriptor
-
     private lateinit var endpoint: String
-
     private lateinit var proxyMode: ProxyMode
-
     private lateinit var appsList: List<String>
-
     private lateinit var gateway: IGateway
 
     override fun onCreate() {
@@ -41,8 +41,7 @@ class SpearVpn : VpnService() {
         var act = intent?.action
         return when (act) {
             VPN_START_ACTION -> {
-                connect()
-                notifyActivity(act, true)
+                notifyActivity(act, connect())
                 START_STICKY
             }
             VPN_END_ACTION -> {
@@ -75,19 +74,30 @@ class SpearVpn : VpnService() {
             }
             appsList = checklist
         }
-
-        gateway = Gateway(this, endpoint)
     }
 
-    private fun connect() {
+    private fun connect(): Boolean {
         loadConfigs()
+        connectionKeeper = ConnectionKeeper()
+        val isInit = connectionKeeper.initialize(
+                endpoint,
+                "password"
+            ) {
+            disconnect()
+        }
+        if (!isInit) {
+            return false
+        }
         vpnInterface = createVpnInterface()
+        gateway = Gateway(this, connectionKeeper.vpnTransportEndpoint())
         gateway.start(vpnInterface.fileDescriptor)
+        return true
     }
 
     private fun disconnect() {
         gateway.stop()
         vpnInterface.close()
+        connectionKeeper.stop()
         System.gc()
     }
 
@@ -102,9 +112,9 @@ class SpearVpn : VpnService() {
         }
 
         return builder
-            .addAddress("10.10.0.2", 32)
+            .addAddress(connectionKeeper.vpnTunAddress(), 32)
             .addRoute("0.0.0.0", 0)
-            .addDnsServer("8.8.8.8")
+            .addDnsServer(connectionKeeper.vpnDns())
             .setSession("SpearVpnSession")
             .setBlocking(true)
             .setConfigureIntent(configureIntent)
