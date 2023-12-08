@@ -20,7 +20,7 @@ class ConnectionKeeper {
         onBroken: () -> Unit,
         onContinue: (Boolean) -> Unit) {
         try {
-            val t = Thread {
+            Thread {
                 socket = createSocketByEndpoint(endpoint)
                 input = socket?.getInputStream()
                 output = socket?.getOutputStream()
@@ -30,10 +30,11 @@ class ConnectionKeeper {
                         running = true
                         loop(onBroken)
                     }
+                    thread?.start()
                     onContinue(true)
                 }
                 onContinue(false)
-            }
+            }.start()
         } catch (e: Exception) {
             Log.e(javaClass.name, "Exception when initialize()")
         }
@@ -54,7 +55,15 @@ class ConnectionKeeper {
     fun stop() {
         if (running) {
             running = false
-            thread.join()
+
+            thread?.join()
+            input?.close()
+            output?.close()
+            socket?.close()
+
+            input = null
+            output = null
+            socket = null
         }
     }
 

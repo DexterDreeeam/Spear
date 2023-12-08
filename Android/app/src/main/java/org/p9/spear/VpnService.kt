@@ -117,6 +117,7 @@ class SpearVpn : VpnService() {
         val fd = vpnInterface?.fileDescriptor!!
         gateway = Gateway(this, eptTransport)
         gateway?.start(fd)
+        notifyActivity(VPN_START_ACTION, true)
     }
 
     private fun disconnect() {
