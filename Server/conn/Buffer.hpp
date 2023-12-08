@@ -46,7 +46,7 @@ public:
     ~Buffer() = default;
 
     template<typename T = void>
-    T* Pos()
+    T* Ptr()
     {
         return _mem ? reinterpret_cast<T*>(_mem->ptr) : nullptr;
     }

@@ -111,13 +111,14 @@ void ConnectionManager::_LoopIncomming()
     while (true)
     {
         Buffer buf(BUFFER_MAX_SIZE);
-        int len = read(_tunnel, buf.Pos(), buf.Len());
+        int len = read(_tunnel, buf.Ptr(), buf.Cap());
         if (len <= 0)
         {
             sleep_ms(100);
             continue;
         }
         buf.Set(len);
+        // LOG("--- %d", len);
         _test->Leave(buf);
     }
 }
@@ -128,7 +129,6 @@ void ConnectionManager::_LoopWorker()
     while (true)
     {
         auto worker = _allocator->AcquireWorker();
-        _test = worker; // TEST
         if (!worker)
         {
             ERR("cannot acquire worker");
@@ -145,13 +145,15 @@ void ConnectionManager::_LoopWorker()
             {
                 _allocator->ReleaseWorker(worker);
             });
+        _test = worker;
     }
 }
 
 void ConnectionManager::_Arrive(Buffer buf)
 {
     RET(_tunnel <= 0);
-    write(_tunnel, buf.Pos(), buf.Len());
+    // LOG("+++ %d", buf.Len());
+    write(_tunnel, buf.Ptr(), buf.Len());
 }
 
 SPEAR_END

@@ -18,7 +18,7 @@ inline void destroy_tunnel(int tunnel)
 {
     if (tunnel > 0)
     {
-        close(tunnel);
+        // close(tunnel);
     }
 }
 

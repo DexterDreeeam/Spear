@@ -9,10 +9,9 @@ void ConnectionWorker::Entry(
     sockaddr_in addrin;
     sockaddr& addr = *(sockaddr*)&addrin;
     uint addrsz = sizeof(addrin);
-    int sk_client = accept(sk_service, &addr, &addrsz);
-    RET(sk_client < 0);
+    _sk_msg = accept(sk_service, &addr, &addrsz);
+    RET(_sk_msg < 0);
 
-    _sk_msg = sk_client;
     _loop = std::thread(
         [=]()
         {
@@ -27,37 +26,61 @@ void ConnectionWorker::Entry(
 //   - From Client to Server
 void ConnectionWorker::Leave(Buffer buf)
 {
-    RET(_sk_transport);
-    RET(_sk_addr_len > 0);
+    RET(_sk_transport <= 0);
+    RET(_sk_addr_len <= 0);
     int s_rst = sendto(
-        _sk_transport, buf.Pos(), buf.Len(), 0,
+        _sk_transport, buf.Ptr(), buf.Len(), 0,
         (sockaddr*)&_sk_addr, _sk_addr_len);
-    if (s_rst < 0)
-    {
-        LOG("Cannoot do sendto client.");
-    }
+    RET(s_rst < 0);
 }
 
 void ConnectionWorker::_Loop(FnArrive arrive, FnExit exit)
 {
-    if (this->_HandShake() && this->_SetupTransport())
-    {
-        LOG("Client %d Enter Transport.", _port);
-        while (_sk_transport > 0)
+    RET(!this->_HandShake() || !this->_SetupTransport());
+
+    LOG("Client %d Enter Transport.", _port);
+
+    std::atomic_bool isConnecting = true;
+    std::thread t = std::thread(
+        [=, &isConnecting]()
         {
-            Buffer buf(BUFFER_MAX_SIZE);
-            int r_len = recvfrom(
-                _sk_transport, buf.Pos(), buf.Cap(), 0,
-                (sockaddr*)&_sk_addr, &_sk_addr_len);
-            if (r_len <= 0)
+            while (isConnecting)
             {
-                break;
+                Buffer buf(BUFFER_MAX_SIZE);
+                int r_len = recvfrom(
+                    _sk_transport, buf.Ptr(), buf.Cap(), 0,
+                    (sockaddr*)&_sk_addr, &_sk_addr_len);
+                if (r_len <= 0)
+                {
+                    if (errno == EAGAIN || errno == EWOULDBLOCK)
+                    {
+                        // timeout
+                        continue;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                buf.Set(r_len);
+                arrive(buf);
             }
-            buf.Set(r_len);
-            arrive(buf);
+        });
+
+    while (true)
+    {
+        char msg[128];
+        int r_len = recv(_sk_msg, msg, sizeof(msg), 0);
+        if (r_len <= 0)
+        {
+            // connection closed
+            isConnecting = false;
+            t.join();
+            break;
         }
-        LOG("Client %d Exit Transport.", _port);
     }
+
+    LOG("Client %d Exit Transport.", _port);
     this->_RetireTransport();
     exit();
 }
@@ -76,7 +99,9 @@ bool ConnectionWorker::_HandShake()
     RET(select(_sk_msg + 1, &fdSet, 0, 0, &tv) <= 0, false);
 
     int r_len = recv(_sk_msg, &_token, sizeof(_token), 0);
-    RET(r_len != sizeof(_token), false);
+    RET(r_len <= 0, false)
+    // RET(r_len != sizeof(_token), false);
+    RET(r_len != 8, false); // "password" len:8
     RET(!_auth->IsTokenValid(_token), false);
 
     auto r_token = _auth->Reply(_token, _port);
@@ -89,9 +114,13 @@ bool ConnectionWorker::_SetupTransport()
 {
     ef ef_transport = [this]() { this->_RetireTransport(); };
 
-    int sk = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    RET(sk <= 0, false);
-    _sk_transport = sk;
+    timeval tv = {};
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
+    _sk_transport = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    LOG("SET _sk_transport: %d", _sk_transport);
+    RET(_sk_transport <= 0, false);
+    RET(setsockopt(_sk_transport, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0, false);
 
     sockaddr_in addrin;
     auto* addr = (sockaddr*)&addrin;
@@ -99,8 +128,9 @@ bool ConnectionWorker::_SetupTransport()
     bzero(&addrin, addrsz);
     addrin.sin_family = AF_INET;
     addrin.sin_addr.s_addr = htonl(INADDR_ANY);
-    addrin.sin_port = htons(_port);
-    RET(bind(sk, addr, addrsz) != 0, false);
+    // addrin.sin_port = htons(_port);
+    addrin.sin_port = htons(22334);
+    RET(bind(_sk_transport, addr, addrsz) != 0, false);
 
     ef_transport.disable();
     return true;
@@ -108,10 +138,16 @@ bool ConnectionWorker::_SetupTransport()
 
 void ConnectionWorker::_RetireTransport()
 {
+    LOG("Retire!!!!");
     if (_sk_transport > 0)
     {
         close(_sk_transport);
         _sk_transport = -1;
+    }
+    if (_sk_msg > 0)
+    {
+        close(_sk_msg);
+        _sk_msg = -1;
     }
 }
 
