@@ -8,37 +8,35 @@ import java.net.Socket
 
 class ConnectionKeeper {
 
-    private lateinit var socket: Socket
-    private lateinit var input: InputStream
-    private lateinit var output: OutputStream
+    private var socket: Socket? = null
+    private var input: InputStream? = null
+    private var output: OutputStream? = null
     private lateinit var thread: Thread
     private var running = false
 
     fun initialize(
         endpoint: String,
         auth: String,
-        onBroken: () -> Unit): Boolean {
+        onBroken: () -> Unit,
+        onContinue: (Boolean) -> Unit) {
         try {
-            val networkSetupThread = Thread {
+            val t = Thread {
                 socket = createSocketByEndpoint(endpoint)
-                input = socket.getInputStream()
-                output = socket.getOutputStream()
-            }
-            networkSetupThread.start()
-            networkSetupThread.join()
-            if (shakeHand(auth)) {
-                running = true
-                thread = Thread {
+                input = socket?.getInputStream()
+                output = socket?.getOutputStream()
+                if (shakeHand(auth)) {
                     running = true
-                    loop(onBroken)
+                    thread = Thread {
+                        running = true
+                        loop(onBroken)
+                    }
+                    onContinue(true)
                 }
-                return true
+                onContinue(false)
             }
         } catch (e: Exception) {
             Log.e(javaClass.name, "Exception when initialize()")
-            onBroken()
         }
-        return false
     }
 
     fun vpnTunAddress(): String {
@@ -61,14 +59,14 @@ class ConnectionKeeper {
     }
 
     private fun shakeHand(auth: String): Boolean {
-        output.write(auth.toByteArray())
+        output?.write(auth.toByteArray())
         return true
     }
 
     private fun loop(onBroken: () -> Unit) {
         try {
             while (running) {
-                output.write("hello".toByteArray())
+                output?.write("hello".toByteArray())
                 Thread.sleep(100)
             }
         } catch (e: Exception) {

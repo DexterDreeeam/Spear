@@ -26,12 +26,12 @@ class SpearVpn : VpnService() {
             this, 0, Intent(this, MainActivity::class.java), activityFlag)
     }
 
-    private lateinit var connectionKeeper: ConnectionKeeper
-    private lateinit var vpnInterface: ParcelFileDescriptor
-    private lateinit var endpoint: String
-    private lateinit var proxyMode: ProxyMode
-    private lateinit var appsList: List<String>
-    private lateinit var gateway: IGateway
+    private var connectionKeeper: ConnectionKeeper? = null
+    private var vpnInterface: ParcelFileDescriptor? = null
+    private var endpoint: String? = null
+    private var proxyMode: ProxyMode? = null
+    private var appsList: List<String>? = null
+    private var gateway: IGateway? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -41,7 +41,7 @@ class SpearVpn : VpnService() {
         var act = intent?.action
         return when (act) {
             VPN_START_ACTION -> {
-                notifyActivity(act, connect())
+                preConnect()
                 START_STICKY
             }
             VPN_END_ACTION -> {
@@ -76,34 +76,63 @@ class SpearVpn : VpnService() {
         }
     }
 
-    private fun connect(): Boolean {
+    private fun preConnect() {
         loadConfigs()
+
         connectionKeeper = ConnectionKeeper()
-        val isInit = connectionKeeper.initialize(
-                endpoint,
-                "password"
-            ) {
-            disconnect()
+        val ept: String = endpoint ?: ""
+        if (ept == "") {
+            return
         }
-        if (!isInit) {
-            return false
+
+        connectionKeeper?.initialize(
+            ept,
+            "password",
+            onBroken = { disconnect() },
+            onContinue = { isSuccess ->
+                if (isSuccess) {
+                    postConnect()
+                }
+            })
+    }
+
+    private fun postConnect() {
+        val eptTransport: String = connectionKeeper?.vpnTransportEndpoint() ?: ""
+        if (eptTransport == "") {
+            notifyActivity(VPN_START_ACTION, false)
+            return
         }
-        vpnInterface = createVpnInterface()
-        gateway = Gateway(this, connectionKeeper.vpnTransportEndpoint())
-        gateway.start(vpnInterface.fileDescriptor)
-        return true
+
+        vpnInterface = createVpnInterface() ?: null
+        if (vpnInterface == null) {
+            notifyActivity(VPN_START_ACTION, false)
+            return
+        }
+
+        if (vpnInterface?.fileDescriptor == null) {
+            notifyActivity(VPN_START_ACTION, false)
+            return
+        }
+
+        val fd = vpnInterface?.fileDescriptor!!
+        gateway = Gateway(this, eptTransport)
+        gateway?.start(fd)
     }
 
     private fun disconnect() {
-        gateway.stop()
-        vpnInterface.close()
-        connectionKeeper.stop()
+        gateway?.stop()
+        vpnInterface?.close()
+        connectionKeeper?.stop()
+
+        gateway = null
+        vpnInterface = null
+        connectionKeeper = null
         System.gc()
     }
 
-    private fun createVpnInterface(): ParcelFileDescriptor {
+    private fun createVpnInterface(): ParcelFileDescriptor? {
         val builder = Builder()
-        appsList.forEach {
+        appsList?.forEach {
             app ->
                 if (app != "") {
                     Log.i(javaClass.name, "Route for package: $app")
@@ -111,10 +140,15 @@ class SpearVpn : VpnService() {
                 }
         }
 
+        val vpnTun: String = connectionKeeper?.vpnTunAddress() ?: ""
+        val vpnDns: String = connectionKeeper?.vpnDns() ?: ""
+        if (vpnTun == "" || vpnDns == "") {
+            return null
+        }
         return builder
-            .addAddress(connectionKeeper.vpnTunAddress(), 32)
+            .addAddress(vpnTun, 32)
             .addRoute("0.0.0.0", 0)
-            .addDnsServer(connectionKeeper.vpnDns())
+            .addDnsServer(vpnDns)
             .setSession("SpearVpnSession")
             .setBlocking(true)
             .setConfigureIntent(configureIntent)
