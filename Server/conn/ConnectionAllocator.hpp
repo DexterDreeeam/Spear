@@ -18,13 +18,14 @@ public:
 
 private:
     static const int   MaxConnections = 256;
+    const Config&      _config;
     std::mutex         _mtx;
     int                _cnt;
     Worker             _workers[MaxConnections];
     State              _states[MaxConnections];
 
 public:
-    ConnectionAllocator();
+    ConnectionAllocator(const Config& config);
     ~ConnectionAllocator() = default;
 
     bool Setup(ref<TokenAuthenticator> auth, int count, int port_from);

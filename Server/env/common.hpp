@@ -15,6 +15,7 @@
 #include <errno.h>
 #include <fcntl.h>
 
+#include <cstring>
 #include <string>
 #include <iostream>
 #include <memory>

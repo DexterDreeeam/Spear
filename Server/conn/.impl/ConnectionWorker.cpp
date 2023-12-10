@@ -36,7 +36,9 @@ void ConnectionWorker::Leave(Buffer buf)
 
 void ConnectionWorker::_Loop(FnArrive arrive, FnExit exit)
 {
-    RET(!this->_HandShake() || !this->_SetupTransport());
+    RET(!this->_SetupInformation());
+    RET(!this->_HandShake());
+    RET(!this->_SetupTransport());
 
     LOG("Client %d Enter Transport.", _port);
 
@@ -85,28 +87,12 @@ void ConnectionWorker::_Loop(FnArrive arrive, FnExit exit)
     exit();
 }
 
-bool ConnectionWorker::_HandShake()
+bool ConnectionWorker::_SetupInformation()
 {
-    RET(_sk_msg <= 0, false);
-
-    timeval tv = {};
-    tv.tv_sec = CLIENT_CONNECTING_SEC;
-    tv.tv_usec = 0;
-
-    fd_set fdSet;
-    FD_ZERO(&fdSet);
-    FD_SET(_sk_msg, &fdSet);
-    RET(select(_sk_msg + 1, &fdSet, 0, 0, &tv) <= 0, false);
-
-    int r_len = recv(_sk_msg, &_token, sizeof(_token), 0);
-    RET(r_len <= 0, false)
-    // RET(r_len != sizeof(_token), false);
-    RET(r_len != 8, false); // "password" len:8
-    RET(!_auth->IsTokenValid(_token), false);
-
-    auto r_token = _auth->Reply(_token, _port);
-    int s_len = send(_sk_msg, &r_token, sizeof(r_token), 0);
-    RET(s_len != sizeof(r_token), false);
+    _information["VpnTunAddr"]    = _config.address;
+    _information["VpnDns"]        = _config.dns;
+    _information["TransportPort"] = std::to_string(_port);
+    RET(!_information.IsValid(), false);
     return true;
 }
 
@@ -128,11 +114,39 @@ bool ConnectionWorker::_SetupTransport()
     bzero(&addrin, addrsz);
     addrin.sin_family = AF_INET;
     addrin.sin_addr.s_addr = htonl(INADDR_ANY);
-    // addrin.sin_port = htons(_port);
-    addrin.sin_port = htons(22334);
+    addrin.sin_port = htons(_port);
     RET(bind(_sk_transport, addr, addrsz) != 0, false);
 
     ef_transport.disable();
+    return true;
+}
+
+bool ConnectionWorker::_HandShake()
+{
+    RET(_sk_msg <= 0, false);
+
+    timeval tv = {};
+    tv.tv_sec = CLIENT_CONNECTING_SEC;
+    tv.tv_usec = 0;
+
+    fd_set fdSet;
+    FD_ZERO(&fdSet);
+    FD_SET(_sk_msg, &fdSet);
+    RET(select(_sk_msg + 1, &fdSet, 0, 0, &tv) <= 0, false);
+
+    int r_len = recv(_sk_msg, &_token, sizeof(_token), 0);
+    RET(r_len <= 0, false)
+    RET(r_len != sizeof(_token), false);
+    RET(!_auth->IsTokenValid(_token), false);
+
+    // auto r_token = _auth->Reply(_token, _port);
+    // int s_len = send(_sk_msg, &r_token, sizeof(r_token), 0);
+    // RET(s_len != sizeof(r_token), false);
+
+    auto infoStr = _information.ToString();
+    int i_len = send(_sk_msg, infoStr.c_str(), infoStr.size(), 0);
+    RET(i_len != (int)infoStr.size(), false);
+
     return true;
 }
 

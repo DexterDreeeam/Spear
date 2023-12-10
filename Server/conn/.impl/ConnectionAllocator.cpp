@@ -4,7 +4,8 @@ SPEAR_BEG
 
 using Worker = ConnectionAllocator::Worker;
 
-ConnectionAllocator::ConnectionAllocator() :
+ConnectionAllocator::ConnectionAllocator(const Config& config) :
+    _config(config),
     _mtx(),
     _cnt(0),
     _workers(),
@@ -20,7 +21,8 @@ bool ConnectionAllocator::Setup(
     int w = 0;
     while (w < count)
     {
-        _workers[w] = make_ref<ConnectionWorker>(auth, w, port_from + w);
+        _workers[w] = make_ref<ConnectionWorker>(
+            _config, auth, w, port_from + w);
         _states[w] = State::Idle;
         ++w;
     }

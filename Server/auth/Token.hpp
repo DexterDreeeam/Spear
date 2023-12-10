@@ -7,7 +7,7 @@ SPEAR_BEG
 class Token
 {
 public:
-    char t[64];
+    char t[8];
 };
 
 SPEAR_END

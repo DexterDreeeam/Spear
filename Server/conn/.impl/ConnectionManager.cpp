@@ -24,9 +24,11 @@ bool ConnectionManager::_Init(const Config& config)
     ef ef_service = [this]() { this->_UninitService(); };
 
     this->_auth = make_ref<TokenAuthenticator>();
-    this->_allocator = make_ref<ConnectionAllocator>();
+    this->_allocator = make_ref<ConnectionAllocator>(_config);
     RET(!this->_allocator->Setup(
-            _auth, config.max_connection, config.transport_port_from),
+            _auth,
+            config.max_connection,
+            config.transport_port_from),
         false);
 
     ef_tunnel.disable();
