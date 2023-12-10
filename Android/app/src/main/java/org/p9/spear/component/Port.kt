@@ -99,5 +99,4 @@ class TestPort(vpn: VpnService, private val endpoint: String) : IPort(vpn) {
             }
         }
     }
-
 }

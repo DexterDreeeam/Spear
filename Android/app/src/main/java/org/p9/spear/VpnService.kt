@@ -28,6 +28,8 @@ class SpearVpn : VpnService() {
 
     private var connectionKeeper: ConnectionKeeper? = null
     private var vpnInterface: ParcelFileDescriptor? = null
+    private var ipAddr: String? = null
+    private var port: String? = null
     private var endpoint: String? = null
     private var proxyMode: ProxyMode? = null
     private var appsList: List<String>? = null
@@ -62,7 +64,9 @@ class SpearVpn : VpnService() {
 
     private fun loadConfigs() {
         val sharedPreferences = getSharedPreferences("SpearSharedPreferences", MODE_PRIVATE)
-        endpoint = "20.255.49.236:22333" // sharedPreferences.getString("endpoint", "").toString()
+        // endpoint = "20.255.49.236:22333" // sharedPreferences.getString("endpoint", "").toString()
+        ipAddr = "20.255.49.236"
+        port = "22333"
         proxyMode = ProxyMode.fromString(sharedPreferences.getString("proxy_mode", "").toString())
         appsList = listOf()
 
@@ -80,8 +84,10 @@ class SpearVpn : VpnService() {
         loadConfigs()
 
         connectionKeeper = ConnectionKeeper()
-        val ept: String = endpoint ?: ""
-        if (ept == "") {
+        var ept = ""
+        if (ipAddr != null && port != null) {
+            ept = "$ipAddr:$port"
+        } else {
             return
         }
 
@@ -97,8 +103,8 @@ class SpearVpn : VpnService() {
     }
 
     private fun postConnect() {
-        val eptTransport: String = connectionKeeper?.vpnTransportEndpoint() ?: ""
-        if (eptTransport == "") {
+        val eptPort: String = connectionKeeper?.vpnTransportPort() ?: ""
+        if (eptPort == "") {
             notifyActivity(VPN_START_ACTION, false)
             return
         }
@@ -115,7 +121,7 @@ class SpearVpn : VpnService() {
         }
 
         val fd = vpnInterface?.fileDescriptor!!
-        gateway = Gateway(this, eptTransport)
+        gateway = Gateway(this, "$ipAddr:$eptPort")
         gateway?.start(fd)
         notifyActivity(VPN_START_ACTION, true)
     }
@@ -141,7 +147,7 @@ class SpearVpn : VpnService() {
                 }
         }
 
-        val vpnTun: String = connectionKeeper?.vpnTunAddress() ?: ""
+        val vpnTun: String = connectionKeeper?.vpnTunAddr() ?: ""
         val vpnDns: String = connectionKeeper?.vpnDns() ?: ""
         if (vpnTun == "" || vpnDns == "") {
             return null
