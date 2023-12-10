@@ -28,13 +28,15 @@ abstract class IPort (protected val vpnService: VpnService) {
 
     abstract fun send(packet: Packet): Boolean
 
-    var onReceive: ((Packet, Int) -> Boolean)? = null
+    var onReceive: ((Packet) -> Boolean)? = null
 }
 
 class TestPort(vpn: VpnService, private val endpoint: String) : IPort(vpn) {
 
     private var tunnel: DatagramChannel? = null
     private var thread: Thread? = null
+    private val packet = Packet(
+        ByteBuffer.allocate(UShort.MAX_VALUE.toInt()))
 
     override fun connect(): Boolean {
         if (connected != false) {
@@ -46,8 +48,8 @@ class TestPort(vpn: VpnService, private val endpoint: String) : IPort(vpn) {
             if (!vpnService.protect(t.socket())) {
                 throw IllegalStateException("Cannot protect the tunnel");
             }
-            t.connect(getSocketAddressByEndpoint(endpoint))
             t.configureBlocking(true)
+            t.connect(getSocketAddressByEndpoint(endpoint))
             tunnel = t
             thread = Thread {
                 loop()
@@ -86,12 +88,14 @@ class TestPort(vpn: VpnService, private val endpoint: String) : IPort(vpn) {
 
     private fun loop() {
         while(connected == true && tunnel != null) {
-            val packet = Packet(ByteBuffer.allocate(UShort.MAX_VALUE.toInt()))
-            val len = tunnel?.read(packet.buffer) ?: 0
-            if (len > 0) {
-                if (onReceive?.invoke(packet, len) == false) {
+            packet.len = tunnel?.read(packet.buffer) ?: 0
+            if (packet.len > 0) {
+                if (onReceive?.invoke(packet) == false) {
                     break
                 }
+                packet.buffer.clear()
+            } else {
+                Log.e(javaClass.name, "loop but no data!!!!")
             }
         }
     }

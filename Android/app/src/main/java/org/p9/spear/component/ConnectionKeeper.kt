@@ -13,6 +13,7 @@ class ConnectionKeeper {
     private var output: OutputStream? = null
     private lateinit var thread: Thread
     private var running = false
+    private val helloBytes = "hello".toByteArray()
 
     fun initialize(
         endpoint: String,
@@ -75,8 +76,8 @@ class ConnectionKeeper {
     private fun loop(onBroken: () -> Unit) {
         try {
             while (running) {
-                output?.write("hello".toByteArray())
-                Thread.sleep(100)
+                output?.write(helloBytes)
+                Thread.sleep(1000)
             }
         } catch (e: Exception) {
             Log.e(javaClass.name, "Exception when loop()")

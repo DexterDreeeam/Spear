@@ -47,9 +47,7 @@ abstract class IGateway : Runnable {
         return true
     }
 
-    protected open fun iterate(): Boolean {
-        return true
-    }
+    abstract fun iterate(): Boolean
 
     final override fun run() {
         running = true
@@ -76,12 +74,17 @@ class Gateway(vpn: VpnService, endpoint: String) : IGateway() {
         port.connect()
         return true
     }
+
+    override fun iterate(): Boolean {
+        return false
+    }
 }
 
 class GatewaySend(private val port: IPort) : IGateway() {
 
     private lateinit var stream: FileInputStream
-    private val buffer: ByteBuffer = ByteBuffer.allocate(UShort.MAX_VALUE.toInt())
+    private val packet = Packet(
+        ByteBuffer.allocate(UShort.MAX_VALUE.toInt()))
 
     override fun setup() {
         stream = FileInputStream(fd)
@@ -89,13 +92,14 @@ class GatewaySend(private val port: IPort) : IGateway() {
 
     override fun iterate(): Boolean {
         return try {
-            val len = stream.read(buffer.array())
+            val len = stream.read(packet.buffer.array())
             if (len > 0) {
-                Log.i(javaClass.name, "+++ $len")
-                buffer.limit(len)
-                val packet = Packet(buffer)
+                // Log.i(javaClass.name, "+++ $len")
+                packet.buffer.limit(len)
                 port.send(packet)
-                buffer.clear()
+                packet.buffer.clear()
+            } else {
+                Log.e(javaClass.name, "loop but no data!!!!")
             }
             true
         } catch (e: Exception) {
@@ -110,14 +114,18 @@ class GatewayReceive(port: IPort) : IGateway() {
     private val buffer: ByteBuffer = ByteBuffer.allocate(16384)
 
     init {
-        port.onReceive = { packet, len ->
-            Log.i(javaClass.name, "--- $len")
-            stream.write(packet.buffer.array(), 0, len)
+        port.onReceive = { packet ->
+            // Log.i(javaClass.name, "--- $len")
+            stream.write(packet.buffer.array(), 0, packet.len)
             true
         }
     }
 
     override fun setup() {
         stream = FileOutputStream(fd)
+    }
+
+    override fun iterate(): Boolean {
+        return false
     }
 }
