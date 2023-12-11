@@ -6,6 +6,7 @@ import org.p9.spear.entity.Packet
 import java.io.FileDescriptor
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.IOException
 import java.lang.Exception
 import java.net.SocketAddress
 import java.nio.ByteBuffer
@@ -116,8 +117,13 @@ class GatewayReceive(port: IPort) : IGateway() {
     init {
         port.onReceive = { packet ->
             // Log.i(javaClass.name, "--- $len")
-            stream.write(packet.buffer.array(), 0, packet.len)
-            true
+            try {
+                stream.write(packet.buffer.array(), 0, packet.len)
+                true
+            } catch (ex: IOException) {
+                Log.e(javaClass.name, "Exception $ex when port.onReceive.")
+                false
+            }
         }
     }
 

@@ -27,13 +27,14 @@ import org.p9.spear.entity.ProxyMode
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var centerAddress: EditText
     private lateinit var proxyToken: EditText
     private lateinit var actionButton: Button
     private lateinit var modeButton: Button
     private lateinit var packages: RecyclerView
 
     private lateinit var notificationReceiver: BroadcastReceiver
+    private lateinit var sharedPreferences: SharedPreferences
+
     private var proxyTokenStr: String = ""
     private var connectStatus: ConnectStatus = ConnectStatus.Disconnect
     private var proxyMode: ProxyMode = ProxyMode.Global
@@ -271,6 +272,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getStorage(key: String, default: String): String {
-        return sharedPreferences.getString(key, null) ?: default
+        return sharedPreferences.getString(key, default) ?: default
     }
 }

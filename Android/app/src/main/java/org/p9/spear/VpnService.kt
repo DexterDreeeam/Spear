@@ -46,12 +46,14 @@ class SpearVpn : VpnService() {
         var act = intent?.action
         return when (act) {
             VPN_START_ACTION -> {
-                preConnect()
+                if (!preConnect()) {
+                    notifyActivity(VPN_START_ACTION, false)
+                }
                 START_STICKY
             }
             VPN_END_ACTION -> {
                 disconnect()
-                notifyActivity(act, true)
+                notifyActivity(VPN_END_ACTION, true)
                 START_NOT_STICKY
             }
             else -> {
@@ -65,11 +67,16 @@ class SpearVpn : VpnService() {
         disconnect()
     }
 
-    private fun loadConfigs() {
-        val sharedPreferences = getSharedPreferences("SpearSharedPreferences", MODE_PRIVATE)
-        // endpoint = "20.255.49.236:22333" // sharedPreferences.getString("endpoint", "").toString()
-        ipAddr = "20.255.49.236"
-        port = "22333"
+    private fun loadConfigs(): Boolean {
+        sharedPreferences = getSharedPreferences("SpearSharedPreferences", MODE_PRIVATE)
+        val token = getStorage("connect_proxy_token", "")
+        val parts = token.split(":")
+        if (parts.size < 2 || parts[0].length < 8 || parts[1].isEmpty()) {
+            return false;
+        }
+
+        ipAddr = parts[0]
+        port = parts[1]
         proxyMode = ProxyMode.fromString(sharedPreferences.getString("proxy_mode", "").toString())
         appsList = listOf()
 
@@ -81,31 +88,41 @@ class SpearVpn : VpnService() {
             }
             appsList = checklist
         }
+
+        return true
     }
 
-    private fun preConnect() {
-        loadConfigs()
+    private fun preConnect(): Boolean {
+        if (!loadConfigs()) {
+            return false
+        }
 
-        connectionKeeper = ConnectionKeeper()
         var ept = ""
         if (ipAddr != null && port != null) {
             ept = "$ipAddr:$port"
         } else {
-            return
+            return false
         }
 
-        connectionKeeper?.initialize(
+        val keeper = ConnectionKeeper()
+        keeper.initialize(
             ept,
             "password",
             onBroken = { disconnect() },
             onContinue = { isSuccess ->
-                if (isSuccess) {
-                    postConnect()
-                }
+                postConnect(isSuccess)
             })
+
+        connectionKeeper = keeper
+        return true
     }
 
-    private fun postConnect() {
+    private fun postConnect(preSuccess: Boolean) {
+        if (!preSuccess) {
+            notifyActivity(VPN_START_ACTION, false)
+            return
+        }
+
         val eptPort: String = connectionKeeper?.vpnTransportPort() ?: ""
         if (eptPort == "") {
             notifyActivity(VPN_START_ACTION, false)

@@ -4,6 +4,7 @@ import android.util.Log
 import org.json.JSONObject
 import java.io.InputStream
 import java.io.OutputStream
+import java.net.ConnectException
 import java.net.InetAddress
 import java.net.Socket
 
@@ -29,27 +30,30 @@ class ConnectionKeeper {
         auth: String,
         onBroken: () -> Unit,
         onContinue: (Boolean) -> Unit) {
-        try {
-            Thread {
+
+        Thread {
+            try {
                 socket = createSocketByEndpoint(endpoint)
                 socket?.soTimeout = 5000
 
                 input = socket?.getInputStream()
                 output = socket?.getOutputStream()
-                if (shakeHand(auth)) {
-                    running = true
-                    thread = Thread {
-                        running = true
-                        loop(onBroken)
-                    }
-                    thread?.start()
-                    onContinue(true)
+                if (!shakeHand(auth)) {
+                    onContinue(false)
                 }
+
+                running = true
+                thread = Thread {
+                    running = true
+                    loop(onBroken)
+                }
+                thread?.start()
+                onContinue(true)
+            } catch (ex: ConnectException) {
+                // connection failed
                 onContinue(false)
-            }.start()
-        } catch (e: Exception) {
-            Log.e(javaClass.name, "Exception when initialize()")
-        }
+            }
+        }.start()
     }
 
     fun vpnTunAddr(): String {
@@ -80,19 +84,23 @@ class ConnectionKeeper {
     }
 
     private fun shakeHand(auth: String): Boolean {
-        output?.write(auth.toByteArray())
-        val data = ByteArray(65535)
-        val rLen = input?.read(data) ?: 0
-        val j = JSONObject(String(data, 0, rLen))
-        Log.i(javaClass.name, j.toString())
+        return try {
+            output?.write(auth.toByteArray())
+            val data = ByteArray(65535)
+            val rLen = input?.read(data) ?: 0
+            val j = JSONObject(String(data, 0, rLen))
+            Log.i(javaClass.name, j.toString())
 
-        vpnTunAddr = j.getString("VpnTunAddr")
-        vpnDns = j.getString("VpnDns")
-        transportPort = j.getString("TransportPort")
-
-        encryption = j.optString("Encryption")
-        encryptionToken = j.optString("EncryptionToken")
-        return true
+            vpnTunAddr = j.getString("VpnTunAddr")
+            vpnDns = j.getString("VpnDns")
+            transportPort = j.getString("TransportPort")
+            encryption = j.optString("Encryption")
+            encryptionToken = j.optString("EncryptionToken")
+            true
+        } catch (ex: Exception) {
+            Log.e(javaClass.name, ex.toString())
+            false
+        }
     }
 
     private fun loop(onBroken: () -> Unit) {
@@ -102,7 +110,7 @@ class ConnectionKeeper {
                 Thread.sleep(1000)
             }
         } catch (e: Exception) {
-            Log.e(javaClass.name, "Exception when loop()")
+            Log.e(javaClass.name, "Exception: $e when loop()")
             onBroken()
         }
     }
