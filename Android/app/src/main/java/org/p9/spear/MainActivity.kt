@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var packages: RecyclerView
 
     private lateinit var notificationReceiver: BroadcastReceiver
-    private lateinit var sharedPreferences: SharedPreferences
+    private var proxyTokenStr: String = ""
     private var connectStatus: ConnectStatus = ConnectStatus.Disconnect
     private var proxyMode: ProxyMode = ProxyMode.Global
 
@@ -51,7 +51,6 @@ class MainActivity : AppCompatActivity() {
         sharedPreferences = getSharedPreferences("SpearSharedPreferences", MODE_PRIVATE)
 
         setContentView(R.layout.activity_main)
-        centerAddress = findViewById(R.id.center_address_editor)
         proxyToken = findViewById(R.id.proxy_token_editor)
         actionButton = findViewById(R.id.action_button)
         modeButton = findViewById(R.id.mode_button)
@@ -60,27 +59,27 @@ class MainActivity : AppCompatActivity() {
 
         updateStatus(ConnectStatus.Loading)
 
-        centerAddress.setText(getStorage("center_address", getString(R.string.center_address_hint)))
-        centerAddress.addTextChangedListener(object: TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                setStorage("center_address", s.toString())
-            }
-        })
+        if (proxyTokenStr == "") {
+            proxyTokenStr = getStorage("connect_proxy_token", "")
+        }
+        if (proxyTokenStr == "") {
+            proxyTokenStr = getStorage("proxy_token", "")
+        }
 
-        proxyToken.setText(getStorage("proxy_token", ""))
+        proxyToken.setText(proxyTokenStr)
         proxyToken.addTextChangedListener(object: TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                setStorage("proxy_token", s.toString())
+                proxyTokenStr = s.toString()
+                setStorage("proxy_token", proxyTokenStr)
             }
         })
 
         actionButton.setOnClickListener {
             when (connectStatus) {
                 ConnectStatus.Disconnect -> {
+                    setStorage("connect_proxy_token", proxyTokenStr)
                     connect()
                 }
                 ConnectStatus.Connected -> {

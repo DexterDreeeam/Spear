@@ -12,7 +12,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="20dp"
         android:autofillHints=""
         android:hint="@string/proxy_token_hint"
@@ -20,7 +20,7 @@
         android:minHeight="48dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/proxy_token"
+        app:layout_constraintTop_toBottomOf="@+id/app_name"
         tools:ignore="VisualLintTextFieldSize" />
 
     <TextView
@@ -34,43 +34,6 @@
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/center_address"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="16dp"
-        android:text="@string/center_address"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-        app:layout_constraintStart_toStartOf="@+id/app_name"
-        app:layout_constraintTop_toBottomOf="@+id/app_name" />
-
-    <TextView
-        android:id="@+id/proxy_token"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/proxy_token"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-        app:layout_constraintStart_toStartOf="@+id/center_address"
-        app:layout_constraintTop_toBottomOf="@+id/center_address_editor" />
-
-    <EditText
-        android:id="@+id/center_address_editor"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginEnd="20dp"
-        android:autofillHints=""
-        android:hint="@string/center_address_hint"
-        android:inputType="text"
-        android:minHeight="48dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/center_address"
-        tools:ignore="MissingConstraints,VisualLintTextFieldSize" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/package_list"

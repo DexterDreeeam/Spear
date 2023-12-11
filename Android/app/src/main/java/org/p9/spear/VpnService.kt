@@ -2,6 +2,7 @@ package org.p9.spear
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
@@ -26,11 +27,13 @@ class SpearVpn : VpnService() {
             this, 0, Intent(this, MainActivity::class.java), activityFlag)
     }
 
+    private lateinit var sharedPreferences: SharedPreferences
+
     private var connectionKeeper: ConnectionKeeper? = null
     private var vpnInterface: ParcelFileDescriptor? = null
     private var ipAddr: String? = null
     private var port: String? = null
-    private var endpoint: String? = null
+    // private var endpoint: String? = null
     private var proxyMode: ProxyMode? = null
     private var appsList: List<String>? = null
     private var gateway: IGateway? = null
@@ -171,5 +174,9 @@ class SpearVpn : VpnService() {
         val intent = Intent(action)
         intent.putExtra("result", result)
         sendBroadcast(intent)
+    }
+
+    private fun getStorage(key: String, default: String): String {
+        return sharedPreferences.getString(key, null) ?: default
     }
 }
