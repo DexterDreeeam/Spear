@@ -37,6 +37,8 @@ class ConnectionWorker
     ref<TokenAuthenticator>   _auth;
     std::mutex                _mtx;
     std::thread               _loop;
+    std::atomic<bool>         _occupied;
+    ref<ef>                   _escape;
 
 public:
     static void Entry(ref<Self> self, int sk_service, FnArrive arrive, FnExit exit);
@@ -57,13 +59,29 @@ public:
         _information(),
         _auth(auth),
         _mtx(),
-        _loop()
+        _loop(),
+        _occupied(false),
+        _escape(nullptr)
     {}
 
     ~ConnectionWorker()
     {
         this->Reset();
     }
+
+    void Escape(ref<ef> escape) { _escape = escape; }
+
+    bool Occupy()
+    {
+        bool expected = false;
+        return _occupied.compare_exchange_strong(
+            expected,
+            true,
+            std::memory_order_release,
+            std::memory_order_relaxed);
+    }
+
+    void Idle() { _occupied = false; }
 
     void Entry(int sk_service, FnArrive arrive, FnExit exit);
 
@@ -74,12 +92,12 @@ public:
     void Reset()
     {
         this->_RetireTransport();
-
         if (_sk_msg > 0)
         {
             close(_sk_msg);
             _sk_msg = -1;
         }
+        _escape = nullptr;
     }
 
     // Leave:

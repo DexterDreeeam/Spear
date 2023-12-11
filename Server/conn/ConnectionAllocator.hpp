@@ -22,7 +22,7 @@ private:
     std::mutex         _mtx;
     int                _cnt;
     Worker             _workers[MaxConnections];
-    State              _states[MaxConnections];
+    // State              _states[MaxConnections];
 
 public:
     ConnectionAllocator(const Config& config);
@@ -33,8 +33,8 @@ public:
     void ReleaseWorker(Worker worker);
 
 private:
-    auto _ScopeLock() { return std::lock_guard<std::mutex>(_mtx); }
-    std::pair<int, Worker> _SearchIdleWorker();
+    // auto _ScopeLock() { return std::lock_guard<std::mutex>(_mtx); }
+    Worker _SearchIdleWorker();
     bool _ResetWorker(int w);
 };
 

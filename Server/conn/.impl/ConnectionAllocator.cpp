@@ -8,8 +8,7 @@ ConnectionAllocator::ConnectionAllocator(const Config& config) :
     _config(config),
     _mtx(),
     _cnt(0),
-    _workers(),
-    _states()
+    _workers()
 {
 }
 
@@ -19,61 +18,58 @@ bool ConnectionAllocator::Setup(
     RET(count < 1 || count > MaxConnections, false);
 
     int w = 0;
-    while (w < count)
+    do
     {
         _workers[w] = make_ref<ConnectionWorker>(
             _config, auth, w, port_from + w);
-        _states[w] = State::Idle;
-        ++w;
-    }
+    } while (++w < count);
     _cnt = count;
     return true;
 }
 
 Worker ConnectionAllocator::AcquireWorker()
 {
-    auto idle = this->_SearchIdleWorker();
-    RET(idle.first < 0 || !idle.second, nullptr);
-    return idle.second;
+    auto worker = this->_SearchIdleWorker();
+    RET(!worker, nullptr);
+    return worker;
 }
 
 void ConnectionAllocator::ReleaseWorker(Worker worker)
 {
     int w = worker->Id();
     RET(w < 0 || w >= MaxConnections);
-    RET(_states[w] != State::Disconnecting);
-    RET(!this->_ResetWorker(w));
+    worker->Reset();
+    worker->Idle();
 }
 
-std::pair<int, Worker> ConnectionAllocator::_SearchIdleWorker()
+Worker ConnectionAllocator::_SearchIdleWorker()
 {
     int w = 0;
     int tries = _cnt;
     while (tries--)
     {
         w = random() % _cnt;
-        if (_states[w] != State::Idle)
+        // auto _scope = this->_ScopeLock();
+        auto worker = _workers[w];
+        if (worker->Occupy())
         {
-            continue;
+            worker->Escape(
+                make_ef([=]()
+                {
+                    // Final Escape
+                    worker->Idle();
+                }));
+            return worker;
         }
-        auto _scope = this->_ScopeLock();
-        // check again with mutex
-        if (_states[w] != State::Idle)
-        {
-            continue;
-        }
-        _states[w] = State::Connecting;
-        return std::make_pair(w, _workers[w]);
     }
-    return std::make_pair(-1, nullptr);
+    return nullptr;
 }
 
 bool ConnectionAllocator::_ResetWorker(int w)
 {
-    auto _scope = this->_ScopeLock();
-    RET(_states[w] != State::Disconnecting, false);
+    // auto _scope = this->_ScopeLock();
+    // RET(_states[w] != State::Disconnecting, false);
     _workers[w]->Reset();
-    _states[w] = State::Idle;
     return true;
 }
 

@@ -87,4 +87,10 @@ private:
 
 using ef = escape_function;
 
+template<typename T>
+inline auto make_ef(T escape) -> ref<ef>
+{
+    return ref<ef>(new ef(escape));
+}
+
 SPEAR_END
