@@ -65,6 +65,24 @@
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": []
+        },
+        {
+            "label": "deploy",
+            "command": "nohup",
+            "args": [
+                "./.build/spear_server",
+                "-t", "tun0",
+                "-a", "10.10.0.2",
+                "-p", "22333",
+                "-d", "8.8.8.8",
+                "-f", "22334",
+                "-m", "256",
+                "&"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
         }
     ],
     "version": "2.0.0"
