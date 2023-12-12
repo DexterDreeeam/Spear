@@ -10,7 +10,9 @@ inline int build_tunnel(const std::string& tunName)
     ifreq ifr = {};
     ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
     strncpy(ifr.ifr_name, tunName.c_str(), sizeof(ifr.ifr_name));
-    RET(ioctl(tun, TUNSETIFF, &ifr), -1)
+    int ctl = ioctl(tun, TUNSETIFF, &ifr);
+    LOG("tun-[%d]: ioctl(tun, TUNSETIFF, &ifr) >> %d", tun, ctl);
+    RET(ctl, -1)
     return tun;
 }
 

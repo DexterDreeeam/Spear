@@ -42,6 +42,12 @@ void ConnectionAllocator::ReleaseWorker(Worker worker)
     worker->Idle();
 }
 
+Worker ConnectionAllocator::IndexWorker(int w)
+{
+    RET(w < 0 || w >= MaxConnections, nullptr);
+    return _workers[w];
+}
+
 Worker ConnectionAllocator::_SearchIdleWorker()
 {
     int w = 0;

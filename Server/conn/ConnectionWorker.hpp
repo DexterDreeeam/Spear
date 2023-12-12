@@ -113,6 +113,7 @@ private:
     bool _SetupTransport();
     bool _HandShake();
     void _RetireTransport();
+    std::string _ClientSourceIp();
 };
 
 SPEAR_END

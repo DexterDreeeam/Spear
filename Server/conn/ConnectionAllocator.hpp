@@ -31,6 +31,7 @@ public:
     bool Setup(ref<TokenAuthenticator> auth, int count, int port_from);
     Worker AcquireWorker();
     void ReleaseWorker(Worker worker);
+    Worker IndexWorker(int w);
 
 private:
     // auto _ScopeLock() { return std::lock_guard<std::mutex>(_mtx); }

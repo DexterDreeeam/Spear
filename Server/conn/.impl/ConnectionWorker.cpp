@@ -89,7 +89,7 @@ void ConnectionWorker::_Loop(FnArrive arrive, FnExit exit)
 
 bool ConnectionWorker::_SetupInformation()
 {
-    _information["VpnTunAddr"]    = _config.address;
+    _information["VpnTunAddr"]    = this->_ClientSourceIp();
     _information["VpnDns"]        = _config.dns;
     _information["TransportPort"] = std::to_string(_port);
     RET(!_information.IsValid(), false);
@@ -144,6 +144,7 @@ bool ConnectionWorker::_HandShake()
     // RET(s_len != sizeof(r_token), false);
 
     auto infoStr = _information.ToString();
+    LOG("Client-%d ShakeHand Info %s", _id, infoStr.c_str());
     int i_len = send(_sk_msg, infoStr.c_str(), infoStr.size(), 0);
     RET(i_len != (int)infoStr.size(), false);
 
@@ -163,6 +164,32 @@ void ConnectionWorker::_RetireTransport()
         close(_sk_msg);
         _sk_msg = -1;
     }
+}
+
+std::string ConnectionWorker::_ClientSourceIp()
+{
+    auto addr = _config.address;
+    int ips[4] = {};
+    size_t ofst = 0;
+    for (int i = 0; i < 2; ++i)
+    {
+        size_t pos = addr.find('.', ofst);
+        if (pos == std::string::npos)
+        {
+            break;
+        }
+        ips[i] = atoi(addr.substr(ofst, pos - ofst).c_str());
+        ofst = pos + 1;
+    }
+    ips[2] = (_id >> 8) & 0xff;
+    ips[3] = (_id >> 0) & 0xff;
+
+    std::string rst = "";
+    rst += std::to_string(ips[0]) + '.';
+    rst += std::to_string(ips[1]) + '.';
+    rst += std::to_string(ips[2]) + '.';
+    rst += std::to_string(ips[3]);
+    return rst;
 }
 
 SPEAR_END

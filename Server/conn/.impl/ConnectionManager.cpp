@@ -55,9 +55,8 @@ void ConnectionManager::_UninitTunnel()
 
 bool ConnectionManager::_InitService()
 {
-    int sk = socket(AF_INET, SOCK_STREAM, 0);
-    RET(sk <= 0, false);
-    _sk_service = sk;
+    _sk_service = socket(AF_INET, SOCK_STREAM, 0);
+    RET(_sk_service <= 0, false);
 
     sockaddr_in addrin;
     auto* addr = (sockaddr*)&addrin;
@@ -67,8 +66,8 @@ bool ConnectionManager::_InitService()
     addrin.sin_addr.s_addr = htonl(INADDR_ANY);
     addrin.sin_port = htons(atoi(_config.port.c_str()));
 
-    RET(bind(sk, addr, addrsz) != 0, false);
-    RET(listen(sk, 5) != 0, false);
+    RET(bind(_sk_service, addr, addrsz) != 0, false);
+    RET(listen(_sk_service, 5) != 0, false);
     return true;
 }
 
@@ -116,12 +115,12 @@ void ConnectionManager::_LoopIncomming()
         int len = read(_tunnel, buf.Ptr(), buf.Cap());
         if (len <= 0)
         {
+            // ERR("ConnectionManager::_LoopIncomming no data loop.");
             sleep_ms(100);
             continue;
         }
         buf.Set(len);
-        // LOG("--- %d", len);
-        _test->Leave(buf);
+        this->_DispatchPacket(buf);
     }
 }
 
@@ -147,7 +146,6 @@ void ConnectionManager::_LoopWorker()
             {
                 _allocator->ReleaseWorker(worker);
             });
-        _test = worker;
     }
 }
 
@@ -155,7 +153,76 @@ void ConnectionManager::_Arrive(Buffer buf)
 {
     RET(_tunnel <= 0);
     // LOG("+++ %d", buf.Len());
+    // auto s =
+    //     "s: " + this->_FormatAddr(this->_SourceAddr(buf)) + ", " +
+    //     "d: " + this->_FormatAddr(this->_DestinationAddr(buf));
+    // LOG("+++ %s", s.c_str());
     write(_tunnel, buf.Ptr(), buf.Len());
+}
+
+void ConnectionManager::_DispatchPacket(Buffer buf)
+{
+    // LOG("--- %d", len);
+    auto src = this->_FormatAddr(this->_SourceAddr(buf));
+    auto dst = this->_FormatAddr(this->_DestinationAddr(buf));
+    // auto s = "s: " + src + ", " + "d: " + dst;
+    // LOG("--- %s", s.c_str());
+    int w = this->_ParseWorkerId(dst);
+    if (w < 0)
+    {
+        return;
+    }
+    auto worker = _allocator->IndexWorker(w);
+    if (!worker)
+    {
+        return;
+    }
+    worker->Leave(buf);
+}
+
+u32 ConnectionManager::_SourceAddr(Buffer buf)
+{
+    int ofst = 12;
+    RET(buf.Len() < ofst + 4, 0);
+    return *(u32*)((char*)buf.Ptr() + ofst);
+}
+
+u32 ConnectionManager::_DestinationAddr(Buffer buf)
+{
+    int ofst = 16;
+    RET(buf.Len() < ofst + 4, 0);
+    return *(u32*)((char*)buf.Ptr() + ofst);
+}
+
+std::string ConnectionManager::_FormatAddr(u32 addr)
+{
+    int p1 = (addr >> 0) & 0xff;
+    int p2 = (addr >> 8) & 0xff;
+    int p3 = (addr >> 16) & 0xff;
+    int p4 = (addr >> 24) & 0xff;
+    return
+        std::to_string(p1) + '.' +
+        std::to_string(p2) + '.' +
+        std::to_string(p3) + '.' +
+        std::to_string(p4);
+}
+
+int ConnectionManager::_ParseWorkerId(const std::string& addr)
+{
+    auto ad = addr + '.';
+    int ips[4] = {};
+    size_t ofst = 0;
+    for (int i = 0; i < 4; ++i)
+    {
+        size_t pos = ad.find('.', ofst);
+        if (pos == std::string::npos)
+        {
+            return -1;
+        }
+        ips[i] = atoi(ad.substr(ofst, pos - ofst).c_str());
+        ofst = pos + 1;
+    }
+    return (ips[2] << 8) + ips[3];
 }
 
 SPEAR_END
