@@ -10,6 +10,8 @@ ConnectionAllocator::ConnectionAllocator(const Config& config) :
     _cnt(0),
     _workers()
 {
+    srand(
+        std::chrono::system_clock::now().time_since_epoch().count());
 }
 
 bool ConnectionAllocator::Setup(

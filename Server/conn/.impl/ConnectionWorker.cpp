@@ -153,7 +153,6 @@ bool ConnectionWorker::_HandShake()
 
 void ConnectionWorker::_RetireTransport()
 {
-    LOG("Retire!!!!");
     if (_sk_transport > 0)
     {
         close(_sk_transport);

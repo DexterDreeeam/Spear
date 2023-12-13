@@ -103,10 +103,12 @@ private:
     void _Arrive(Buffer buf);
     void _DispatchPacket(Buffer buf);
 
+    int _Protocol(Buffer buf);
     u32 _SourceAddr(Buffer buf);
     u32 _DestinationAddr(Buffer buf);
     std::string _FormatAddr(u32 addr);
     int _ParseWorkerId(const std::string& addr);
+    std::string _FormatPacketHeader(Buffer buf);
 };
 
 SPEAR_END

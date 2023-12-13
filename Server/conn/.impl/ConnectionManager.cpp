@@ -152,21 +152,14 @@ void ConnectionManager::_LoopWorker()
 void ConnectionManager::_Arrive(Buffer buf)
 {
     RET(_tunnel <= 0);
-    // LOG("+++ %d", buf.Len());
-    // auto s =
-    //     "s: " + this->_FormatAddr(this->_SourceAddr(buf)) + ", " +
-    //     "d: " + this->_FormatAddr(this->_DestinationAddr(buf));
-    // LOG("+++ %s", s.c_str());
+    LOG("+++ %s", this->_FormatPacketHeader(buf).c_str());
     write(_tunnel, buf.Ptr(), buf.Len());
 }
 
 void ConnectionManager::_DispatchPacket(Buffer buf)
 {
-    // LOG("--- %d", len);
-    auto src = this->_FormatAddr(this->_SourceAddr(buf));
+    LOG("--------- %s", this->_FormatPacketHeader(buf).c_str());
     auto dst = this->_FormatAddr(this->_DestinationAddr(buf));
-    // auto s = "s: " + src + ", " + "d: " + dst;
-    // LOG("--- %s", s.c_str());
     int w = this->_ParseWorkerId(dst);
     if (w < 0)
     {
@@ -178,6 +171,13 @@ void ConnectionManager::_DispatchPacket(Buffer buf)
         return;
     }
     worker->Leave(buf);
+}
+
+int ConnectionManager::_Protocol(Buffer buf)
+{
+    int ofst = 9;
+    RET(buf.Len() < ofst + 1, 0);
+    return *((unsigned char*)buf.Ptr() + ofst);
 }
 
 u32 ConnectionManager::_SourceAddr(Buffer buf)
@@ -223,6 +223,18 @@ int ConnectionManager::_ParseWorkerId(const std::string& addr)
         ofst = pos + 1;
     }
     return (ips[2] << 8) + ips[3];
+}
+
+std::string ConnectionManager::_FormatPacketHeader(Buffer buf)
+{
+    auto pro = this->_Protocol(buf);
+    auto src = this->_FormatAddr(this->_SourceAddr(buf));
+    auto dst = this->_FormatAddr(this->_DestinationAddr(buf));
+    std::string rst = "";
+    rst += "[" + std::to_string(pro) + "]";
+    rst += "(" + std::to_string(buf.Len()) + ")";
+    rst += " src:" + src + ", dst:" + dst;
+    return rst;
 }
 
 SPEAR_END
