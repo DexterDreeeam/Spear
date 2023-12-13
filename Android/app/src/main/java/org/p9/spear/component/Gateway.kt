@@ -94,16 +94,25 @@ class GatewaySend(private val port: IPort) : IGateway() {
     override fun iterate(): Boolean {
         return try {
             val len = stream.read(packet.buffer.array())
-            if (len > 0) {
-                // Log.i(javaClass.name, "+++ $len")
-                packet.buffer.limit(len)
-                port.send(packet)
-                packet.buffer.clear()
-            } else {
+            if (len <= 0) {
                 Log.e(javaClass.name, "loop but no data!!!!")
+                true
             }
+            if (packet.buffer.get(0).toInt() == 0) {
+                // Control Message, ignore
+                true
+            }
+            Log.i(javaClass.name, "+++ $len")
+            packet.buffer.limit(len)
+            port.send(packet)
+            packet.buffer.clear()
             true
-        } catch (e: Exception) {
+        } catch (ex: IOException) {
+            Log.e(javaClass.name, "iterate() IOException: $ex")
+            true
+        } catch (ex: Exception) {
+            // Unknown Exception
+            Log.e(javaClass.name, "iterate() Exception: $ex")
             false
         }
     }
@@ -116,7 +125,7 @@ class GatewayReceive(port: IPort) : IGateway() {
 
     init {
         port.onReceive = { packet ->
-            // Log.i(javaClass.name, "--- $len")
+            Log.i(javaClass.name, "--- ${packet.len}")
             try {
                 stream.write(packet.buffer.array(), 0, packet.len)
                 true

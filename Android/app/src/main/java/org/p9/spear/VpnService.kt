@@ -172,6 +172,10 @@ class SpearVpn : VpnService() {
         if (vpnTun == "" || vpnDns == "") {
             return null
         }
+
+        Log.i(javaClass.name, "VPN Tun Address: $vpnTun")
+        Log.i(javaClass.name, "VPN Dns Address: $vpnDns")
+
         return builder
             .addAddress(vpnTun, 32)
             .addRoute("0.0.0.0", 0)

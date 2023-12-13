@@ -28,8 +28,13 @@
         </activity>
         <service
             android:name=".SpearVpn"
+            android:enabled="true"
             android:permission="android.permission.BIND_VPN_SERVICE"
-            android:exported="true" />
+            android:exported="true">
+            <meta-data
+                android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
+                android:value="true" />
+        </service>
     </application>
 
 </manifest>
