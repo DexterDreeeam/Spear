@@ -1,10 +1,31 @@
 # Spear
-Spear is a free and open-source VPN Proxy. Including both Server and Client self-setup software.
+- VPN Proxy
+- Total Free
+- Open Source
 
-# Support Platform
-## Server
+# Platforms
+### _Server_
 - Ubuntu
-## Client
+
+### _Client_
 - Android
 - IOS - Developing
 - Harmony - Developing
+
+# Choose Your Guide
+> S for Server with Public Network IP, C for Client
+- **Ubuntu/S + Android/C**
+  - Goto here
+  - Goto here
+- **Ubuntu/S + iOS/C**
+  - Will be available soon
+- **Ubuntu/S + Harmony/C**
+  - Will be available soon
+
+# Guide - Setup Ubuntu Server
+
+# Guide - Install Android Client
+
+# Guide - Install iOS Client
+
+# Guide - Install Harmony Client
