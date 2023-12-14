@@ -91,9 +91,10 @@
         },
         {
             "label": "deploy",
+            "dependsOn": ["build_release"],
             "command": "nohup",
             "args": [
-                "./.build/spear_server",
+                "./spear_server",
                 "-t", "tunSpear",
                 "-a", "10.233.0.0",
                 "-p", "22333",
