@@ -17,8 +17,8 @@
 # Choose Your Guide
 > S for Server with Public Network IP, C for Client
 - **Ubuntu/S + Android/C**
-  - Goto here
-  - Goto here
+  - Goto [Guide - Setup Ubuntu Server](https://github.com/DexterDreeeam/Spear/blob/main/README.md#guide---setup-ubuntu-server)
+  - Goto [Guide - Install Android Client](https://github.com/DexterDreeeam/Spear/blob/main/README.md#guide---install-android-client)
 - **Ubuntu/S + iOS/C**
   - Will be available soon
 - **Ubuntu/S + Harmony/C**
