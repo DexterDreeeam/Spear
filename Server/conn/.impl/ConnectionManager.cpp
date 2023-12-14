@@ -153,7 +153,10 @@ void ConnectionManager::_Arrive(Buffer buf)
 {
     RET(_tunnel <= 0);
     LOG("+++ %s", this->_FormatPacketHeader(buf).c_str());
-    write(_tunnel, buf.Ptr(), buf.Len());
+    if (write(_tunnel, buf.Ptr(), buf.Len()) != buf.Len())
+    {
+        LOG("write to tunnel failed.");
+    }
 }
 
 void ConnectionManager::_DispatchPacket(Buffer buf)

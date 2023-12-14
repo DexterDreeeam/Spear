@@ -51,6 +51,29 @@
             "group": "build"
         },
         {
+            "label": "build_release",
+            "type": "cppbuild",
+            "dependsOn": ["create-build-folder"],
+            "command": "g++",
+            "args": [
+                "-Wall",
+                "-o",
+                "./spear_server",
+                "-O3",
+                "-g",
+                "$(find",
+                "${workspaceFolder}",
+                "-type",
+                "f",
+                "-iregex",
+                "'.*\\.cpp')",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build"
+        },
+        {
             "label": "run",
             "command": "./.build/spear_server",
             "args": [
