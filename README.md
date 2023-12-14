@@ -1,3 +1,5 @@
+![icon](https://github.com/DexterDreeeam/Spear/assets/43837899/bfb63a08-5d70-46b9-aa47-1b4c7744e352)
+
 # Spear
 - VPN Proxy
 - Simplest
