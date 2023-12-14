@@ -1,5 +1,7 @@
 # Spear
 - VPN Proxy
+- Simplest
+- Fast
 - Total Free
 - Open Source
 
