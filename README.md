@@ -1,4 +1,4 @@
-<img src="https://github.com/DexterDreeeam/Spear/blob/main/Android/icon.png" width="20%" height="20%">
+<img src="https://raw.githubusercontent.com/DexterDreeeam/Spear/main/Android/icon.png" width="20%" height="20%">
 
 # Spear
 - VPN Proxy
