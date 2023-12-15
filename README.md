@@ -27,3 +27,4 @@
 - Install `spear.apk` file in your Android Device
 
 # Guide - Install iOS Client
+- TBD
