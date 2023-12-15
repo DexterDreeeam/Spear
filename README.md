@@ -14,7 +14,7 @@
 ### _Client_
 - Android
 - IOS - Developing
-- Harmony - Developing
+- Harmony - Wait for OS Function Release
 
 # Guide - Setup Ubuntu Server
 - Setup Network Firewall 22333-22589 Ports inbound TCP & UDP open
@@ -27,5 +27,3 @@
 - Install `spear.apk` file in your Android Device
 
 # Guide - Install iOS Client
-
-# Guide - Install Harmony Client
