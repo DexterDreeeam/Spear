@@ -4,8 +4,6 @@
 
 int main(int argc, char** argv)
 {
-    // int test = spear::build_tunnel("tun0");
-    // LOG("%d", test);
     auto config = spear::Config(argc, argv);
     spear::ConnectionManager::Setup(config);
     if (!CM)
