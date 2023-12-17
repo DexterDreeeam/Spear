@@ -16,8 +16,6 @@ class ConnectionKeeper {
     private lateinit var thread: Thread
     private var running = false
 
-    private val helloBytes = "hello".toByteArray()
-
     private var vpnTunAddr = ""
     private var vpnDns = ""
     private var transportPort = ""
@@ -34,14 +32,14 @@ class ConnectionKeeper {
         Thread {
             try {
                 socket = createSocketByEndpoint(endpoint)
-                socket?.soTimeout = 5000
-
-                input = socket?.getInputStream()
-                output = socket?.getOutputStream()
+                socket?.soTimeout = 5000 // set time-out for shake hand
                 if (!shakeHand(auth)) {
                     onContinue(false)
                 }
 
+                socket?.soTimeout = 0
+                input = socket?.getInputStream()
+                output = socket?.getOutputStream()
                 running = true
                 thread = Thread {
                     running = true
@@ -72,10 +70,10 @@ class ConnectionKeeper {
         if (running) {
             running = false
 
-            thread?.join()
             input?.close()
             output?.close()
             socket?.close()
+            thread?.join()
 
             input = null
             output = null
@@ -85,9 +83,9 @@ class ConnectionKeeper {
 
     private fun shakeHand(auth: String): Boolean {
         return try {
-            output?.write(auth.toByteArray())
+            socket?.getOutputStream()?.write(auth.toByteArray())
             val data = ByteArray(65535)
-            val rLen = input?.read(data) ?: 0
+            val rLen = socket?.getInputStream()?.read(data) ?: 0
             val j = JSONObject(String(data, 0, rLen))
             Log.i(javaClass.name, j.toString())
 
@@ -106,12 +104,33 @@ class ConnectionKeeper {
     private fun loop(onBroken: () -> Unit) {
         try {
             while (running) {
-                output?.write(helloBytes)
-                Thread.sleep(1000)
+                if (!replyCommand()) {
+                    break
+                }
             }
         } catch (e: Exception) {
-            Log.e(javaClass.name, "Exception: $e when loop()")
+            Log.e(javaClass.name, "loop() Exception: $e")
+        } finally {
             onBroken()
+        }
+    }
+
+    private fun replyCommand(): Boolean {
+        try {
+            val data = ByteArray(65535)
+            val rLen = input?.read(data) ?: 0
+            if (rLen < 0) {
+                // error
+                return false
+            } else if (rLen == 0) {
+                // empty
+            } else {
+                // try reply
+            }
+            return true
+        } catch (ex: Exception) {
+            // error
+            return false
         }
     }
 

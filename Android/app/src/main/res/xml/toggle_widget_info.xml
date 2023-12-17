@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="40dp"
+    android:minHeight="40dp"
+    android:updatePeriodMillis="3600000"
+    android:previewImage="@drawable/active_widget_icon"
+    android:initialLayout="@layout/toggle_widget"
+    android:description="@string/toggle_widget_desc"
+    android:resizeMode="none"
+    android:widgetCategory="home_screen"
+    android:previewLayout="@layout/toggle_widget"
+    android:targetCellHeight="1"
+    android:targetCellWidth="1"
+/>

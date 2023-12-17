@@ -102,13 +102,14 @@ class GatewaySend(private val port: IPort) : IGateway() {
                 // Control Message, ignore
                 true
             }
-            Log.i(javaClass.name, "+++ $len")
+            // Log.i(javaClass.name, "+++ $len")
             packet.buffer.limit(len)
             port.send(packet)
             packet.buffer.clear()
             true
         } catch (ex: IOException) {
-            Log.e(javaClass.name, "iterate() IOException: $ex")
+            // there will be lots of IOException in Huawei and Xiaomi
+            // Log.e(javaClass.name, "iterate() IOException: $ex")
             true
         } catch (ex: Exception) {
             // Unknown Exception
@@ -125,7 +126,7 @@ class GatewayReceive(port: IPort) : IGateway() {
 
     init {
         port.onReceive = { packet ->
-            Log.i(javaClass.name, "--- ${packet.len}")
+            // Log.i(javaClass.name, "--- ${packet.len}")
             try {
                 stream.write(packet.buffer.array(), 0, packet.len)
                 true

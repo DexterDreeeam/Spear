@@ -1,60 +1,78 @@
 package org.p9.spear
 
 import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Intent
-import android.content.SharedPreferences
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.util.Log
+import android.widget.RemoteViews
 import org.p9.spear.component.ConnectionKeeper
 import org.p9.spear.component.Gateway
 import org.p9.spear.component.IGateway
 import org.p9.spear.constant.VPN_END_ACTION
+import org.p9.spear.constant.VPN_GRANT_ACTION
 import org.p9.spear.constant.VPN_START_ACTION
+import org.p9.spear.constant.VPN_STATUS_ACTION
+import org.p9.spear.constant.VPN_TOGGLE_ACTION
+import org.p9.spear.entity.ConnectStatus
 import org.p9.spear.entity.ProxyMode
-import java.net.InetAddress
-import java.net.Socket
 
 class SpearVpn : VpnService() {
 
     private val configureIntent: PendingIntent by lazy {
-        var activityFlag = PendingIntent.FLAG_UPDATE_CURRENT
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            activityFlag += PendingIntent.FLAG_MUTABLE
-        }
-        PendingIntent.getActivity(
-            this, 0, Intent(this, MainActivity::class.java), activityFlag)
+        var activityFlag = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT or FLAG_ACTIVITY_NEW_TASK
+        PendingIntent.getService(
+            this, 123, Intent(this, SpearVpn::class.java), activityFlag)
     }
 
-    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var configureManager: ConfigureManager
+    private lateinit var appWidgetManager: AppWidgetManager
+    private var connectStatus: ConnectStatus = ConnectStatus.Disconnect
 
     private var connectionKeeper: ConnectionKeeper? = null
     private var vpnInterface: ParcelFileDescriptor? = null
     private var ipAddr: String? = null
     private var port: String? = null
-    // private var endpoint: String? = null
     private var proxyMode: ProxyMode? = null
     private var appsList: List<String>? = null
     private var gateway: IGateway? = null
 
     override fun onCreate() {
         super.onCreate()
+        appWidgetManager = AppWidgetManager.getInstance(this)
+    }
+
+    override fun onRevoke() {
+        disconnect()
+        super.onRevoke()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        var act = intent?.action
-        return when (act) {
-            VPN_START_ACTION -> {
-                if (!preConnect()) {
-                    notifyActivity(VPN_START_ACTION, false)
+        return when (intent?.action) {
+            VPN_STATUS_ACTION -> {
+                notifyStatus()
+                if (connectStatus == ConnectStatus.Disconnect) {
+                    START_NOT_STICKY
+                } else {
+                    START_STICKY
                 }
-                START_STICKY
+            }
+            VPN_START_ACTION -> {
+                onStartFlow()
             }
             VPN_END_ACTION -> {
-                disconnect()
-                notifyActivity(VPN_END_ACTION, true)
-                START_NOT_STICKY
+                onEndFlow()
+            }
+            VPN_TOGGLE_ACTION -> {
+                if (connectStatus == ConnectStatus.Disconnect) {
+                    onStartFlow()
+                } else {
+                    onEndFlow()
+                }
             }
             else -> {
                 START_NOT_STICKY
@@ -63,33 +81,65 @@ class SpearVpn : VpnService() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         disconnect()
+        super.onDestroy()
     }
 
     private fun loadConfigs(): Boolean {
-        sharedPreferences = getSharedPreferences("SpearSharedPreferences", MODE_PRIVATE)
-        val token = getStorage("connect_proxy_token", "")
+        configureManager = ConfigureManager(this)
+
+        val token = configureManager.getConnectToken() ?: ":"
         val parts = token.split(":")
         if (parts.size < 2 || parts[0].length < 8 || parts[1].isEmpty()) {
-            return false;
+            return false
         }
 
         ipAddr = parts[0]
         port = parts[1]
-        proxyMode = ProxyMode.fromString(sharedPreferences.getString("proxy_mode", "").toString())
+        proxyMode = ProxyMode.fromString(configureManager.getMode() ?: "")
         appsList = listOf()
 
         if (proxyMode == ProxyMode.Package) {
-            val checklistStr = sharedPreferences.getString("package_checklist", "").toString()
-            var checklist = mutableListOf<String>()
-            checklistStr.split(",").map {
-                app -> checklist.add(app)
-            }
-            appsList = checklist
+            appsList = configureManager.getPackageChecklist()
         }
 
         return true
+    }
+
+    private fun onStartFlow(): Int {
+        changeStatus(ConnectStatus.Disconnect, ConnectStatus.Connecting)
+        val prepare = prepare(this)
+        if (prepare != null || !preConnect()) {
+            changeStatus(ConnectStatus.Disconnect)
+            requestVpnGrant() // ask grant vpn
+        }
+        return START_STICKY
+    }
+
+    private fun onEndFlow(): Int {
+        disconnect()
+        changeStatus(ConnectStatus.Disconnect)
+        return START_NOT_STICKY
+    }
+
+    private fun changeStatus(fromStatus: ConnectStatus, toStatus: ConnectStatus): Boolean {
+        return if (connectStatus == fromStatus) {
+            connectStatus = toStatus
+            notifyStatus()
+            true
+        } else {
+            false
+        }
+    }
+
+    private fun changeStatus(toStatus: ConnectStatus): Boolean {
+        return if (connectStatus != toStatus) {
+            connectStatus = toStatus
+            notifyStatus()
+            true
+        } else {
+            false
+        }
     }
 
     private fun preConnect(): Boolean {
@@ -97,7 +147,7 @@ class SpearVpn : VpnService() {
             return false
         }
 
-        var ept = ""
+        val ept: String
         if (ipAddr != null && port != null) {
             ept = "$ipAddr:$port"
         } else {
@@ -119,34 +169,37 @@ class SpearVpn : VpnService() {
 
     private fun postConnect(preSuccess: Boolean) {
         if (!preSuccess) {
-            notifyActivity(VPN_START_ACTION, false)
+            changeStatus(ConnectStatus.Disconnect)
             return
         }
 
         val eptPort: String = connectionKeeper?.vpnTransportPort() ?: ""
         if (eptPort == "") {
-            notifyActivity(VPN_START_ACTION, false)
+            changeStatus(ConnectStatus.Disconnect)
             return
         }
 
-        vpnInterface = createVpnInterface() ?: null
+        vpnInterface = createVpnInterface()
         if (vpnInterface == null) {
-            notifyActivity(VPN_START_ACTION, false)
+            changeStatus(ConnectStatus.Disconnect)
             return
         }
 
         if (vpnInterface?.fileDescriptor == null) {
-            notifyActivity(VPN_START_ACTION, false)
+            changeStatus(ConnectStatus.Disconnect)
             return
         }
 
         val fd = vpnInterface?.fileDescriptor!!
         gateway = Gateway(this, "$ipAddr:$eptPort")
         gateway?.start(fd)
-        notifyActivity(VPN_START_ACTION, true)
+
+        changeStatus(ConnectStatus.Connecting, ConnectStatus.Connected)
     }
 
     private fun disconnect() {
+        changeStatus(ConnectStatus.Connected, ConnectStatus.Disconnecting)
+
         gateway?.stop()
         vpnInterface?.close()
         connectionKeeper?.stop()
@@ -154,6 +207,7 @@ class SpearVpn : VpnService() {
         gateway = null
         vpnInterface = null
         connectionKeeper = null
+        changeStatus(ConnectStatus.Disconnect)
         System.gc()
     }
 
@@ -191,13 +245,34 @@ class SpearVpn : VpnService() {
             .establish() ?: throw IllegalStateException("Init vpnInterface failed")
     }
 
-    private fun notifyActivity(action: String, result: Boolean) {
-        val intent = Intent(action)
-        intent.putExtra("result", result)
-        sendBroadcast(intent)
+    private fun requestVpnGrant() {
+        val intent = Intent(applicationContext, MainActivity::class.java)
+        intent.addFlags(FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
     }
 
-    private fun getStorage(key: String, default: String): String {
-        return sharedPreferences.getString(key, null) ?: default
+    private fun notifyStatus() {
+        val intent = Intent()
+        intent.action = VPN_STATUS_ACTION
+        intent.putExtra("result", connectStatus.name)
+        sendBroadcast(intent)
+
+        appWidgetManager
+            .getAppWidgetIds(ComponentName(this, ToggleWidget::class.java))
+            .forEach {
+                val views = RemoteViews(
+                    packageName,
+                    R.layout.toggle_widget
+                )
+                views.setInt(
+                    R.id.toggle_widget_button,
+                    "setImageResource",
+                    if (connectStatus == ConnectStatus.Connected) {
+                        R.drawable.active_widget_icon
+                    } else  {
+                        R.drawable.normal_widget_icon
+                    })
+                appWidgetManager.updateAppWidget(it, views)
+            }
     }
 }

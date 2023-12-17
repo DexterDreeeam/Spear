@@ -4,54 +4,62 @@ import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.SharedPreferences
-import android.content.pm.PackageManager
+import android.content.pm.ApplicationInfo
 import android.graphics.Color
+import android.net.Uri
 import android.net.VpnService
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.p9.spear.constant.VPN_END_ACTION
-import org.p9.spear.constant.VPN_PROFILE_REQUEST
+import org.p9.spear.constant.VPN_GRANT_ACTION
 import org.p9.spear.constant.VPN_START_ACTION
+import org.p9.spear.constant.VPN_STATUS_ACTION
 import org.p9.spear.entity.ConnectStatus
-import org.p9.spear.entity.Package
 import org.p9.spear.entity.ProxyMode
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var appVersion: TextView
+    private lateinit var appWebsite: TextView
     private lateinit var proxyToken: EditText
     private lateinit var actionButton: Button
     private lateinit var modeButton: Button
     private lateinit var packages: RecyclerView
 
     private lateinit var notificationReceiver: BroadcastReceiver
-    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var configureManager: ConfigureManager
 
     private var proxyTokenStr: String = ""
-    private var connectStatus: ConnectStatus = ConnectStatus.Disconnect
+    private var connectStatus: ConnectStatus = ConnectStatus.Loading
     private var proxyMode: ProxyMode = ProxyMode.Global
 
-    var vpnRequestContent = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-        isGranted: Boolean -> if (isGranted) { connect() }
+    private val grantVpn = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == RESULT_OK) {
+            startService()
+        }
     }
 
-    @SuppressLint("QueryPermissionsNeeded")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        notificationReceiver = NotificationReceiver() {
+        notificationReceiver = NotificationReceiver {
             act, result -> receiveResult(act, result)
         }
-        sharedPreferences = getSharedPreferences("SpearSharedPreferences", MODE_PRIVATE)
+        configureManager = ConfigureManager(this)
 
         setContentView(R.layout.activity_main)
+        appVersion = findViewById(R.id.app_version)
+        appWebsite = findViewById(R.id.app_website)
         proxyToken = findViewById(R.id.proxy_token_editor)
         actionButton = findViewById(R.id.action_button)
         modeButton = findViewById(R.id.mode_button)
@@ -60,28 +68,35 @@ class MainActivity : AppCompatActivity() {
 
         updateStatus(ConnectStatus.Loading)
 
-        if (proxyTokenStr == "") {
-            proxyTokenStr = getStorage("connect_proxy_token", "")
-        }
-        if (proxyTokenStr == "") {
-            proxyTokenStr = getStorage("proxy_token", "")
+        var version = packageManager.getPackageInfo(packageName, 0).versionName +
+            if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
+                "d"
+            } else {
+                "r"
+            }
+        appVersion.text = version
+
+        appWebsite.setOnClickListener {
+            val url = getString(R.string.app_website_url)
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            startActivity(intent)
         }
 
+        proxyTokenStr = configureManager.getConnectToken() ?: configureManager.getToken() ?: ""
         proxyToken.setText(proxyTokenStr)
         proxyToken.addTextChangedListener(object: TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 proxyTokenStr = s.toString()
-                setStorage("proxy_token", proxyTokenStr)
+                configureManager.setToken(proxyTokenStr)
             }
         })
 
         actionButton.setOnClickListener {
             when (connectStatus) {
                 ConnectStatus.Disconnect -> {
-                    setStorage("connect_proxy_token", proxyTokenStr)
-                    connect()
+                    onConnectClicked()
                 }
                 ConnectStatus.Connected -> {
                     disconnect()
@@ -94,17 +109,21 @@ class MainActivity : AppCompatActivity() {
             updateMode(nextMode())
         }
 
-        var modeStr = getStorage("proxy_mode", ProxyMode.Global.toString())
+        val modeStr = configureManager.getMode() ?: ProxyMode.Global.toString()
         updateMode(ProxyMode.fromString(modeStr))
-        updateStatus(ConnectStatus.Disconnect)
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onResume() {
         super.onResume()
+
         val filter = IntentFilter()
+        filter.addAction(VPN_GRANT_ACTION)
+        filter.addAction(VPN_STATUS_ACTION)
         filter.addAction(VPN_START_ACTION)
         filter.addAction(VPN_END_ACTION)
         registerReceiver(notificationReceiver, filter)
+        updateServiceStatus()
     }
 
     override fun onPause() {
@@ -112,17 +131,25 @@ class MainActivity : AppCompatActivity() {
         unregisterReceiver(notificationReceiver)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            VPN_PROFILE_REQUEST -> startService()
+    private fun onConnectClicked() {
+        configureManager.setConnectToken(proxyTokenStr)
+        if (proxyMode == ProxyMode.Package) {
+            loadPackages(false)
         }
+        modeButton.isEnabled = false
+        connect()
+    }
+
+    private fun updateServiceStatus() {
+        val it = Intent(this, SpearVpn::class.java)
+        it.action = VPN_STATUS_ACTION
+        startService(it)
     }
 
     private fun connect() {
         val prepareIntent = VpnService.prepare(this)
         if (prepareIntent != null) {
-            startActivityForResult(prepareIntent, VPN_PROFILE_REQUEST)
+            grantVpn.launch(prepareIntent)
         } else {
             startService()
         }
@@ -146,28 +173,20 @@ class MainActivity : AppCompatActivity() {
         startService(it)
     }
 
-    private fun receiveResult(action: String, result: Boolean) {
+    private fun receiveResult(action: String, result: String) {
         when (action) {
-            VPN_START_ACTION -> {
-                if (result) {
-                    updateStatus(ConnectStatus.Connected)
-                } else {
-                    updateStatus(ConnectStatus.Disconnect)
-                }
+            VPN_GRANT_ACTION -> {
+                onConnectClicked()
             }
-            VPN_END_ACTION -> {
-                if (result) {
-                    updateStatus(ConnectStatus.Disconnect)
-                } else {
-                    updateStatus(ConnectStatus.Connected)
-                }
+            VPN_STATUS_ACTION -> {
+                updateStatus(ConnectStatus.fromString(result))
             }
             else -> {}
         }
     }
 
     private fun updateStatus(status: ConnectStatus) {
-        var buttonStr: String
+        val buttonStr: String
         var buttonClickable = true
         var buttonColor: Int = Color.GRAY
         when (status) {
@@ -178,13 +197,14 @@ class MainActivity : AppCompatActivity() {
             ConnectStatus.Disconnect -> {
                 buttonStr = "Connect"
                 buttonColor = Color.CYAN
+                activateMode()
             }
             ConnectStatus.Connecting -> {
                 buttonStr = "Connecting"
                 buttonClickable = false
             }
             ConnectStatus.Connected -> {
-                buttonStr = "Connected"
+                buttonStr = "Disconnect"
                 buttonColor = Color.GREEN
             }
             ConnectStatus.Disconnecting -> {
@@ -192,10 +212,19 @@ class MainActivity : AppCompatActivity() {
                 buttonClickable = false
             }
         }
+
         actionButton.text = buttonStr
+        actionButton.isEnabled = buttonClickable
         actionButton.isClickable = buttonClickable
         actionButton.setBackgroundColor(buttonColor)
         connectStatus = status
+    }
+
+    private fun activateMode() {
+        if (proxyMode == ProxyMode.Package) {
+            loadPackages(true)
+        }
+        modeButton.isEnabled = true
     }
 
     private fun nextMode(): ProxyMode {
@@ -206,72 +235,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateMode(mode: ProxyMode) {
-        var modeButtonStr: String
+        val modeButtonStr: String
         when (mode) {
             ProxyMode.Global -> {
                 packages.visibility = View.GONE
-                modeButtonStr = "Global Mode"
+                modeButtonStr = "Global"
             }
             ProxyMode.Package -> {
-                loadPackages()
+                loadPackages(true)
                 packages.visibility = View.VISIBLE
-                modeButtonStr = "Apps Mode"
+                modeButtonStr = "Apps"
             }
         }
         modeButton.text = modeButtonStr
         proxyMode = mode
-        setStorage("proxy_mode", mode.toString())
+        configureManager.setMode(mode.toString())
     }
     
-    private fun loadPackages() {
-        val checklistSet = mutableSetOf<String>()
-        val checklist = getStorage("package_checklist", "")
-        for (packageName in checklist.split(",")) {
-            checklistSet.add(packageName)
-        }
-        val pm = packageManager
-        val activePackages = mutableListOf<Package>()
-        val inactivePackages = mutableListOf<Package>()
-        for (packageInfo in pm.getInstalledPackages(PackageManager.GET_META_DATA)) {
-            val name = packageInfo.packageName
-            pm.getLaunchIntentForPackage(name)?.component?.className ?: continue
-            val icon = pm.getApplicationIcon(name)
-            if (checklistSet.contains(name)) {
-                activePackages.add(Package(name, icon))
-            } else {
-                inactivePackages.add(Package(name, icon))
-            }
-        }
-
-        val packageListAdapter = PackageListAdapter(checklist) {
-            name, checked -> updatePackageChecklist(name, checked)
+    private fun loadPackages(active: Boolean) {
+        val packageListAdapter = PackageListAdapter(
+            configureManager.getPackageChecklist(),
+            active) {
+                name, checked -> configureManager.setPackageChecklist(name, checked)
         }
         packages.adapter = packageListAdapter
-        packageListAdapter.setPackageList(activePackages + inactivePackages)
-    }
-
-    private fun updatePackageChecklist(name: String, checked: Boolean) {
-        val checklist = getStorage("package_checklist", "")
-        val packageSet = mutableSetOf<String>()
-        for (packageName in checklist.split(",")) {
-            packageSet.add(packageName)
-        }
-        if (checked) {
-            packageSet.add(name)
-        } else {
-            packageSet.remove(name)
-        }
-        val newChecklist = packageSet.joinToString(",")
-        setStorage("package_checklist", newChecklist)
-    }
-
-    private fun setStorage(key: String, value: String) {
-        val editor = sharedPreferences.edit()
-        editor.putString(key, value)
-        editor.apply()
-    }
-
-    private fun getStorage(key: String, default: String): String {
-        return sharedPreferences.getString(key, default) ?: default
+        packageListAdapter.setPackageList(configureManager.getPackages(this))
     }
 }

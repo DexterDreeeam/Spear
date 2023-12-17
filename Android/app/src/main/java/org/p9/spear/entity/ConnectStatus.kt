@@ -5,5 +5,18 @@ enum class ConnectStatus {
     Disconnect,
     Connecting,
     Connected,
-    Disconnecting,
+    Disconnecting;
+
+    companion object {
+        fun fromString(s: String): ConnectStatus {
+            return when (s) {
+                Loading.name -> Loading
+                Disconnect.name -> Disconnect
+                Connecting.name -> Connecting
+                Connected.name -> Connected
+                Disconnecting.name -> Disconnecting
+                else -> Loading
+            }
+        }
+    }
 }
