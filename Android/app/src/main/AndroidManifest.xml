@@ -35,10 +35,10 @@
         <service
             android:name=".SpearVpn"
             android:enabled="true"
-            android:exported="true"
+            android:exported="false"
+            android:process=":spearBackgroundProcess"
             android:foregroundServiceType="specialUse"
-            android:permission="android.permission.BIND_VPN_SERVICE"
-            android:process=":SpearBackground">
+            android:permission="android.permission.BIND_VPN_SERVICE">
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>
@@ -54,8 +54,8 @@
 
         <receiver
             android:name=".ToggleWidget"
-            android:exported="false"
-            android:process=":SpearBackground">
+            android:process=":spearBackgroundProcess"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="org.p9.spear.vpn.status" />

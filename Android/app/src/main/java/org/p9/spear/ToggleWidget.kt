@@ -7,6 +7,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+import android.os.Build
 import android.util.Log
 import android.widget.RemoteViews
 import org.p9.spear.constant.VPN_STATUS_ACTION
@@ -24,12 +25,21 @@ class ToggleWidget : AppWidgetProvider() {
         appWidgetIds.forEach { appWidgetId ->
             val intent = Intent(context, SpearVpn::class.java)
             intent.action = VPN_TOGGLE_ACTION
-            val pendingIntent: PendingIntent = PendingIntent.getService(
-                context,
-                R.id.toggle_widget_button,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
+            val pendingIntent: PendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                PendingIntent.getForegroundService(
+                    context,
+                    R.id.toggle_widget_button,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+            } else {
+                PendingIntent.getService(
+                    context,
+                    R.id.toggle_widget_button,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+            }
 
             val views = RemoteViews(
                 context.packageName,
@@ -44,6 +54,6 @@ class ToggleWidget : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
-        Log.e("Check", "Inside On Receiver !!!!!!!!!!!!!!!!!!")
+        // Log.e("Check", "Inside On Receiver !!!!!!!!!!!!!!!!!!")
     }
 }

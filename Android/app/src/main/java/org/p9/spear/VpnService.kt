@@ -1,5 +1,7 @@
 package org.p9.spear
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
@@ -10,23 +12,35 @@ import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import android.widget.RemoteViews
+import androidx.core.app.NotificationCompat
 import org.p9.spear.component.ConnectionKeeper
 import org.p9.spear.component.Gateway
 import org.p9.spear.component.IGateway
 import org.p9.spear.constant.VPN_END_ACTION
-import org.p9.spear.constant.VPN_GRANT_ACTION
 import org.p9.spear.constant.VPN_START_ACTION
 import org.p9.spear.constant.VPN_STATUS_ACTION
 import org.p9.spear.constant.VPN_TOGGLE_ACTION
 import org.p9.spear.entity.ConnectStatus
 import org.p9.spear.entity.ProxyMode
 
+
 class SpearVpn : VpnService() {
 
+    companion object {
+        const val spearChannelId = "P9SpearChannel"
+        const val spearChannelTitle = "P9SpearChannel"
+    }
+
     private val configureIntent: PendingIntent by lazy {
-        var activityFlag = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT or FLAG_ACTIVITY_NEW_TASK
-        PendingIntent.getService(
-            this, 123, Intent(this, SpearVpn::class.java), activityFlag)
+        val activityFlag = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT or FLAG_ACTIVITY_NEW_TASK
+        val intent = Intent(this, SpearVpn::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            PendingIntent.getForegroundService(
+                this, 0, intent, activityFlag)
+        } else {
+            PendingIntent.getService(
+                this, 0, intent, activityFlag)
+        }
     }
 
     private lateinit var configureManager: ConfigureManager
@@ -43,6 +57,7 @@ class SpearVpn : VpnService() {
 
     override fun onCreate() {
         super.onCreate()
+        responseToStartService()
         appWidgetManager = AppWidgetManager.getInstance(this)
     }
 
@@ -52,6 +67,7 @@ class SpearVpn : VpnService() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        responseToStartService()
         return when (intent?.action) {
             VPN_STATUS_ACTION -> {
                 notifyStatus()
@@ -111,7 +127,7 @@ class SpearVpn : VpnService() {
         val prepare = prepare(this)
         if (prepare != null || !preConnect()) {
             changeStatus(ConnectStatus.Disconnect)
-            requestVpnGrant() // ask grant vpn
+            // requestVpnGrant() // ask grant vpn
         }
         return START_STICKY
     }
@@ -274,5 +290,25 @@ class SpearVpn : VpnService() {
                     })
                 appWidgetManager.updateAppWidget(it, views)
             }
+    }
+
+    private fun responseToStartService() {
+        val channel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel(
+                spearChannelId,
+                spearChannelTitle,
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+        } else {
+            TODO("VERSION.SDK_INT < O")
+        }
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
+
+        val notification = NotificationCompat.Builder(this, spearChannelId)
+            .setContentTitle("")
+            .setContentText("").build()
+
+        startForeground(1, notification)
     }
 }

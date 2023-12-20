@@ -1,12 +1,14 @@
 package org.p9.spear
 
+import android.content.Context.MODE_MULTI_PROCESS
 import android.content.Context.MODE_PRIVATE
 import android.content.ContextWrapper
 import android.content.pm.PackageManager
 import org.p9.spear.entity.Package
 
 class ConfigureManager(context: ContextWrapper) {
-    private val sharedPreferences = context.getSharedPreferences("SpearSharedPreferences", MODE_PRIVATE)
+    private val sharedPreferences = context.getSharedPreferences(
+        "SpearSharedPreferences", MODE_PRIVATE or MODE_MULTI_PROCESS)
 
     fun getToken(): String? {
         return get("proxy_token")
@@ -94,6 +96,7 @@ class ConfigureManager(context: ContextWrapper) {
         val editor = sharedPreferences.edit()
         editor.putString(key, value)
         editor.apply()
+        editor.commit()
     }
 
     private fun get(key: String): String? {

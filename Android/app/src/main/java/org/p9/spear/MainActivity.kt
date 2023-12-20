@@ -12,7 +12,6 @@ import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -46,7 +45,7 @@ class MainActivity : AppCompatActivity() {
 
     private val grantVpn = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (it.resultCode == RESULT_OK) {
-            startService()
+            startVpnService()
         }
     }
 
@@ -68,7 +67,7 @@ class MainActivity : AppCompatActivity() {
 
         updateStatus(ConnectStatus.Loading)
 
-        var version = packageManager.getPackageInfo(packageName, 0).versionName +
+        val version = packageManager.getPackageInfo(packageName, 0).versionName +
             if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
                 "d"
             } else {
@@ -123,7 +122,7 @@ class MainActivity : AppCompatActivity() {
         filter.addAction(VPN_START_ACTION)
         filter.addAction(VPN_END_ACTION)
         registerReceiver(notificationReceiver, filter)
-        updateServiceStatus()
+        queryVpnServiceStatus()
     }
 
     override fun onPause() {
@@ -140,37 +139,49 @@ class MainActivity : AppCompatActivity() {
         connect()
     }
 
-    private fun updateServiceStatus() {
-        val it = Intent(this, SpearVpn::class.java)
-        it.action = VPN_STATUS_ACTION
-        startService(it)
-    }
-
     private fun connect() {
         val prepareIntent = VpnService.prepare(this)
         if (prepareIntent != null) {
             grantVpn.launch(prepareIntent)
         } else {
-            startService()
+            startVpnService()
         }
     }
 
     private fun disconnect() {
-        endService()
+        endVpnService()
     }
 
-    private fun startService() {
+    private fun queryVpnServiceStatus() {
+        val it = Intent(this, SpearVpn::class.java)
+        it.action = VPN_STATUS_ACTION
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(it)
+        } else {
+            startService(it)
+        }
+    }
+
+    private fun startVpnService() {
         updateStatus(ConnectStatus.Connecting)
         val it = Intent(this, SpearVpn::class.java)
         it.action = VPN_START_ACTION
-        startService(it)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(it)
+        } else {
+            startService(it)
+        }
     }
 
-    private fun endService() {
+    private fun endVpnService() {
         updateStatus(ConnectStatus.Disconnecting)
         val it = Intent(this, SpearVpn::class.java)
         it.action = VPN_END_ACTION
-        startService(it)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(it)
+        } else {
+            startService(it)
+        }
     }
 
     private fun receiveResult(action: String, result: String) {

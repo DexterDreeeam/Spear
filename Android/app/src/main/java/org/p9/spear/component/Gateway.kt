@@ -131,7 +131,7 @@ class GatewayReceive(port: IPort) : IGateway() {
                 stream.write(packet.buffer.array(), 0, packet.len)
                 true
             } catch (ex: IOException) {
-                Log.e(javaClass.name, "Exception $ex when port.onReceive.")
+                // Log.e(javaClass.name, "Exception $ex when port.onReceive.")
                 false
             }
         }

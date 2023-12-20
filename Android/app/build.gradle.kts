@@ -9,10 +9,10 @@ android {
 
     defaultConfig {
         applicationId = "org.p9.spear"
-        minSdk = 24
+        minSdk = 21
         targetSdk = 33
-        versionCode = 20231217
-        versionName = "2023.12.17"
+        versionCode = 20231220
+        versionName = "2023.12.20"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
