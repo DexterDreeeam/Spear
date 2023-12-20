@@ -25,6 +25,11 @@
 # Guide - Install Android Client
 - Download `spear.apk` in [Latest Release](https://github.com/DexterDreeeam/Spear/releases/latest)
 - Install `spear.apk` file in your Android Device
+- Add Android Widget to quickly toggle VPN
+
+https://github.com/DexterDreeeam/Spear/assets/43837899/cb5dda8c-2558-4ccf-831e-5237a6c2bc61
+
+
 
 # Guide - Install iOS Client
 - TBD
