@@ -4,6 +4,8 @@
     <string name="app_website">About</string>
     <string name="app_website_url">https://github.com/DexterDreeeam/Spear</string>
 
+    <string name="debug_logger">Logger</string>
+
     <string name="toggle_widget_desc">Spear Toggle Widget</string>
 
     <string name="proxy_token">Proxy</string>

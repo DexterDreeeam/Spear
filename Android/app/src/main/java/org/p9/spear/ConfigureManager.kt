@@ -34,6 +34,14 @@ class ConfigureManager(context: ContextWrapper) {
         set("proxy_mode", m)
     }
 
+    fun isFirstLaunch(version: String): Boolean {
+        if (get("last_launch_version") == version) {
+            return false
+        }
+        set("last_launch_version", version)
+        return true
+    }
+
     fun getPackages(context: ContextWrapper): List<Package> {
         val activePackages = mutableListOf<Package>()
         val inactivePackages = mutableListOf<Package>()

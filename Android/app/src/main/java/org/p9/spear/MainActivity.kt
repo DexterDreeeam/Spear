@@ -10,14 +10,18 @@ import android.net.Uri
 import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.p9.spear.constant.VPN_END_ACTION
@@ -26,11 +30,14 @@ import org.p9.spear.constant.VPN_START_ACTION
 import org.p9.spear.constant.VPN_STATUS_ACTION
 import org.p9.spear.entity.ConnectStatus
 import org.p9.spear.entity.ProxyMode
+import java.io.File
+
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appVersion: TextView
     private lateinit var appWebsite: TextView
+    private lateinit var debugLoggerButton: TextView
     private lateinit var proxyToken: EditText
     private lateinit var actionButton: Button
     private lateinit var modeButton: Button
@@ -38,6 +45,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var notificationReceiver: BroadcastReceiver
     private lateinit var configureManager: ConfigureManager
+    private lateinit var toaster: Toaster
 
     private var proxyTokenStr: String = ""
     private var connectStatus: ConnectStatus = ConnectStatus.Loading
@@ -49,16 +57,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         notificationReceiver = NotificationReceiver {
             act, result -> receiveResult(act, result)
         }
         configureManager = ConfigureManager(this)
+        toaster = Toaster(this)
 
         setContentView(R.layout.activity_main)
         appVersion = findViewById(R.id.app_version)
         appWebsite = findViewById(R.id.app_website)
+        debugLoggerButton = findViewById(R.id.debug_logger)
         proxyToken = findViewById(R.id.proxy_token_editor)
         actionButton = findViewById(R.id.action_button)
         modeButton = findViewById(R.id.mode_button)
@@ -71,6 +83,7 @@ class MainActivity : AppCompatActivity() {
             if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
                 "d"
             } else {
+                debugLoggerButton.isVisible = false
                 "r"
             }
         appVersion.text = version
@@ -79,6 +92,10 @@ class MainActivity : AppCompatActivity() {
             val url = getString(R.string.app_website_url)
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
             startActivity(intent)
+        }
+
+        debugLoggerButton.setOnClickListener {
+            openDebugLogger()
         }
 
         proxyTokenStr = configureManager.getConnectToken() ?: configureManager.getToken() ?: ""
@@ -110,6 +127,11 @@ class MainActivity : AppCompatActivity() {
 
         val modeStr = configureManager.getMode() ?: ProxyMode.Global.toString()
         updateMode(ProxyMode.fromString(modeStr))
+
+        if (configureManager.isFirstLaunch(version)) {
+            // requestNoBatteryOptimize()
+            requestStartupPermissionForHarmony4()
+        }
     }
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
@@ -271,5 +293,70 @@ class MainActivity : AppCompatActivity() {
         }
         packages.adapter = packageListAdapter
         packageListAdapter.setPackageList(configureManager.getPackages(this))
+    }
+
+    @SuppressLint("BatteryLife")
+    private fun requestNoBatteryOptimize() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+            val isIgnoreOptimize = powerManager.isIgnoringBatteryOptimizations(packageName)
+            if (!isIgnoreOptimize) {
+                val intent = Intent(
+                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                    Uri.parse("package:$packageName")
+                )
+                startActivity(intent)
+            }
+        }
+    }
+
+    private fun isHarmony(): Boolean {
+        try {
+            val clz = Class.forName("com.huawei.system.BuildEx")
+            val brand = clz.getMethod("getOsBrand").invoke(clz)
+            return brand == "harmony"
+        } catch (e: java.lang.Exception) {
+            e.printStackTrace()
+        }
+        return false
+    }
+
+    private fun requestStartupPermissionForHarmony4() {
+        if (!isHarmony()) {
+            return
+        }
+
+        // guide user to close activity auto-manage and open background running
+        val enMsg = "For Harmony Device, close Startup Auto-Management and allow running in background."
+        val cnMsg = "鸿蒙设备，需在应用启动管理中，关闭自动管理，并开启后台运行。"
+        toaster.dialog(enMsg + "\n\n" + cnMsg)
+        // val intent = Intent()
+        // intent.setComponent(
+        //    ComponentName(
+        //        "com.huawei.systemmanager",
+        //        "com.huawei.systemmanager.appcontrol.activity.StartupAppControlActivity"
+        //    )
+        // )
+        // intent.setAction("com.android.settings.action.EXTRA_APP_SETTINGS")
+        // startActivity(intent)
+    }
+
+    private fun openDebugLogger() {
+        try {
+            val logName = "log.txt"
+            val logger = File(filesDir, logName)
+            if (!logger.exists()) {
+                Log.i(javaClass.name, "logger does not exist")
+                return
+            }
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.setDataAndType(Uri.fromFile(logger), "text/plain")
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            startActivity(intent)
+        } catch (ex: Exception) {
+            // ignore
+        } finally {
+            // ignore
+        }
     }
 }

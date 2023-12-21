@@ -8,6 +8,17 @@
     android:verticalScrollbarPosition="defaultPosition"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/debug_logger"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:alpha="0.8"
+        android:text="@string/debug_logger"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@+id/app_version"
+        app:layout_constraintEnd_toStartOf="@+id/app_website" />
+
     <EditText
         android:id="@+id/proxy_token_editor"
         android:layout_width="0dp"

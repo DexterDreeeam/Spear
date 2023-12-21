@@ -45,7 +45,7 @@ class ConnectionKeeper {
                     running = true
                     loop(onBroken)
                 }
-                thread?.start()
+                thread.start()
                 onContinue(true)
             } catch (ex: ConnectException) {
                 // connection failed

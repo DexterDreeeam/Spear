@@ -7,6 +7,7 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+import android.content.pm.ApplicationInfo
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
@@ -25,6 +26,8 @@ import org.p9.spear.entity.ProxyMode
 
 
 class SpearVpn : VpnService() {
+
+    private var debugLogger: DebugLogger? = null
 
     companion object {
         const val spearChannelId = "P9SpearChannel"
@@ -57,16 +60,22 @@ class SpearVpn : VpnService() {
 
     override fun onCreate() {
         super.onCreate()
+        initDebugLogger()
         responseToStartService()
         appWidgetManager = AppWidgetManager.getInstance(this)
     }
 
     override fun onRevoke() {
+        debugLogger?.append("${javaClass.name} onRevoke")
+
         disconnect()
         super.onRevoke()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        debugLogger?.append("${javaClass.name} onStartCommand")
+
+        initDebugLogger()
         responseToStartService()
         return when (intent?.action) {
             VPN_STATUS_ACTION -> {
@@ -78,6 +87,7 @@ class SpearVpn : VpnService() {
                 }
             }
             VPN_START_ACTION -> {
+                debugLogger?.reset()
                 onStartFlow()
             }
             VPN_END_ACTION -> {
@@ -97,6 +107,8 @@ class SpearVpn : VpnService() {
     }
 
     override fun onDestroy() {
+        debugLogger?.append("${javaClass.name} onDestroy")
+
         disconnect()
         super.onDestroy()
     }
@@ -124,8 +136,7 @@ class SpearVpn : VpnService() {
 
     private fun onStartFlow(): Int {
         changeStatus(ConnectStatus.Disconnect, ConnectStatus.Connecting)
-        val prepare = prepare(this)
-        if (prepare != null || !preConnect()) {
+        if (prepare(this) != null || !preConnect()) {
             changeStatus(ConnectStatus.Disconnect)
             // requestVpnGrant() // ask grant vpn
         }
@@ -310,5 +321,11 @@ class SpearVpn : VpnService() {
             .setContentText("").build()
 
         startForeground(1, notification)
+    }
+
+    private fun initDebugLogger() {
+        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
+            debugLogger = DebugLogger(this)
+        }
     }
 }
