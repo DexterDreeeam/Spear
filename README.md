@@ -6,6 +6,7 @@
 - Fast
 - Total Free
 - Open Source
+- Mobile Client
 
 # Platforms
 ### _Server_
