@@ -28,7 +28,7 @@ e.g. if your server ip is `10.87.225.96`, your token is `10.87.225.96:22333`.
 - Download `_deploy.sh` and `spear_server` in [Latest Release](https://github.com/DexterDreeeam/Spear/releases/latest)
 - Make sure they are in same folder on your Ubuntu Server
 - Run `_deploy.sh` using Root Privilege
-- Goto [Config Ubuntu Server](https://github.com/DexterDreeeam/Spear/tree/main?tab=readme-ov-file#advance---config-ubuntu-server) if you need customize server configuration.
+- Done! If you need customize configuration, refer to [Config Ubuntu Server](https://github.com/DexterDreeeam/Spear/tree/main?tab=readme-ov-file#advance---config-ubuntu-server)
 
 # Guide - Install Android Client
 - Download `spear.apk` in [Latest Release](https://github.com/DexterDreeeam/Spear/releases/latest)
