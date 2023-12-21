@@ -3,7 +3,7 @@
 # Spear
 - VPN Proxy
 - Simplest
-- Fast
+- Filter App
 - Total Free
 - Open Source
 - Mobile Client
@@ -57,4 +57,10 @@ In `_deploy.sh` there are several server configurable parameters.
 
 Clients will connect server port range is `22334` to `22334 + 256 - 1 = 22589`, so Server's ports in this scope need to open. 
 
-
+# About
+Spear will keep simple.  
+It is made by personal usage, so only necessary function will be retained.  
+Even there are many VPN choices in the market,  
+But I cannot get a perfect one.  
+Simplest, quickly access, application filter.  
+This is Spear.
