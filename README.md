@@ -16,6 +16,13 @@
 - IOS - Developing
 - Harmony - Wait for OS Function Release
 
+# Client Proxy Token
+Client side Proxy Token to Connect your server.
+Authentication system is under development, so pleases note there is no security for auth yet.
+Your Proxy Token should be "{ip}:22333" without quotation.
+e.g. if your server ip is "10.87.225.96", your token is "10.87.225.96:22333".
+
+
 # Guide - Setup Ubuntu Server
 - Setup Network Firewall 22333-22589 Ports inbound TCP & UDP open
 - Download `_deploy.sh` and `spear_server` in [Latest Release](https://github.com/DexterDreeeam/Spear/releases/latest)
