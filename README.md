@@ -24,7 +24,7 @@ e.g. if your server ip is `10.87.225.96`, your token is `10.87.225.96:22333`.
 
 
 # Guide - Setup Ubuntu Server
-- Setup Network Firewall 22333-22589 Ports inbound TCP & UDP open
+- Setup Network Firewall `22333-22589` Ports inbound TCP & UDP open
 - Download `_deploy.sh` and `spear_server` in [Latest Release](https://github.com/DexterDreeeam/Spear/releases/latest)
 - Make sure they are in same folder on your Ubuntu Server
 - Run `_deploy.sh` using Root Privilege
