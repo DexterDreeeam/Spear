@@ -19,8 +19,8 @@
 # Client Proxy Token
 Client side Proxy Token to Connect your server.  
 Authentication system is under development, so pleases note there is no security for auth yet.  
-Your Proxy Token should be "{IP}:22333" without quotation.  
-e.g. if your server ip is "10.87.225.96", your token is "10.87.225.96:22333".
+Your Proxy Token should be `{IP}:22333`.  
+e.g. if your server ip is `10.87.225.96`, your token is `10.87.225.96:22333`.
 
 
 # Guide - Setup Ubuntu Server
