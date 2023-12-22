@@ -15,7 +15,7 @@
 ### _Client_
 - Android
 - IOS - Developing
-- Harmony - Wait for OS Function Release
+- Harmony - Wait for OS Function, use Android Client for backup
 
 # Client Proxy Token
 Client side Proxy Token to Connect your server.  
