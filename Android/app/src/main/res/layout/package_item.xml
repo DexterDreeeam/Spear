@@ -27,15 +27,18 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/package_switch"
         app:layout_constraintStart_toEndOf="@+id/package_icon"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="HardcodedText" />
 
-    <Switch
+    <androidx.appcompat.widget.SwitchCompat
         android:id="@+id/package_switch"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:minWidth="48dp"
+        app:trackTint="@color/package_switch_track"
+        app:thumbTint="@color/package_switch_thumb"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

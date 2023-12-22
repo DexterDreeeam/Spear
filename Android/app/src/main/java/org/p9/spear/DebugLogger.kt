@@ -19,7 +19,7 @@ class DebugLogger(private val context: Context) {
         }
     }
 
-    fun clean() {
+    private fun clean() {
         val file = File(context.filesDir, logName)
         if (file.exists()) {
             file.delete()

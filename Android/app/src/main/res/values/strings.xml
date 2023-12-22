@@ -3,15 +3,14 @@
     <string name="app_version_unknown">unknown version</string>
     <string name="app_website">About</string>
     <string name="app_website_url">https://github.com/DexterDreeeam/Spear</string>
+    <string name="app_latest_url">https://github.com/DexterDreeeam/Spear/releases/latest</string>
 
-    <string name="debug_logger">Logger</string>
+    <string name="app_latest">Latest</string>
 
     <string name="toggle_widget_desc">Spear Toggle Widget</string>
 
-    <string name="proxy_token">Proxy</string>
     <string name="proxy_token_hint">your proxy token</string>
 
     <string name="button_text_placeholder">Button</string>
-    <string name="appwidget_text">EXAMPLE</string>
-    <string name="add_widget">Add widget</string>
+    <string name="debug">Debug</string>
 </resources>

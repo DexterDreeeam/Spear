@@ -8,9 +8,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.lang.Exception
-import java.net.SocketAddress
 import java.nio.ByteBuffer
-import java.nio.channels.FileChannel
 
 abstract class IGateway : Runnable {
 
@@ -53,7 +51,10 @@ abstract class IGateway : Runnable {
     final override fun run() {
         running = true
         if (firstIterate()) {
-            while (!this.thread.isInterrupted && iterate()) {
+            while (!this.thread.isInterrupted) {
+                if (!iterate()) {
+                    break
+                }
             }
         }
         clean()
@@ -97,16 +98,16 @@ class GatewaySend(private val port: IPort) : IGateway() {
             if (len <= 0) {
                 Log.e(javaClass.name, "loop but no data!!!!")
                 true
-            }
-            if (packet.buffer.get(0).toInt() == 0) {
+            } else if (packet.buffer.get(0).toInt() == 0) {
                 // Control Message, ignore
                 true
+            } else {
+                // Log.i(javaClass.name, "+++ $len")
+                packet.buffer.limit(len)
+                port.send(packet)
+                packet.buffer.clear()
+                true
             }
-            // Log.i(javaClass.name, "+++ $len")
-            packet.buffer.limit(len)
-            port.send(packet)
-            packet.buffer.clear()
-            true
         } catch (ex: IOException) {
             // there will be lots of IOException in Huawei and Xiaomi
             // Log.e(javaClass.name, "iterate() IOException: $ex")
@@ -122,7 +123,6 @@ class GatewaySend(private val port: IPort) : IGateway() {
 class GatewayReceive(port: IPort) : IGateway() {
 
     private lateinit var stream: FileOutputStream
-    private val buffer: ByteBuffer = ByteBuffer.allocate(16384)
 
     init {
         port.onReceive = { packet ->

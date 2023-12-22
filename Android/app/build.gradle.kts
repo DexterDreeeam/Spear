@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "org.p9.spear"
-        minSdk = 21
+        minSdk = 24
         targetSdk = 34
         versionCode = 20231222
         versionName = "2023.12.22"

@@ -6,14 +6,10 @@ import org.p9.spear.entity.Packet
 import java.lang.Exception
 import java.net.InetAddress
 import java.net.InetSocketAddress
-import java.net.Socket
 import java.net.SocketAddress
-import java.net.SocketOptions.SO_SNDBUF
 import java.net.StandardSocketOptions
 import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel
-import java.nio.channels.SelectionKey
-import java.nio.channels.Selector
 
 fun getSocketAddressByEndpoint(endpoint: String): SocketAddress {
     val ipPort = endpoint.split(":")
@@ -50,11 +46,11 @@ class TestPort(vpn: VpnService, private val endpoint: String) : IPort(vpn) {
         try {
             val t = DatagramChannel.open()
             if (!vpnService.protect(t.socket())) {
-                throw IllegalStateException("Cannot protect the tunnel");
+                throw IllegalStateException("Cannot protect the tunnel")
             }
             t.configureBlocking(true)
-            t.setOption(StandardSocketOptions.SO_SNDBUF, 32 * 1024 * 1024)
-            t.setOption(StandardSocketOptions.SO_RCVBUF, 32 * 1024 * 1024)
+            t.setOption(StandardSocketOptions.SO_SNDBUF, 16 * 1024 * 1024)
+            t.setOption(StandardSocketOptions.SO_RCVBUF, 16 * 1024 * 1024)
             t.connect(getSocketAddressByEndpoint(endpoint))
             tunnel = t
             thread = Thread {

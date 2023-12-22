@@ -8,7 +8,7 @@ import java.net.ConnectException
 import java.net.InetAddress
 import java.net.Socket
 
-class ConnectionKeeper {
+class ConnectionKeeper(private val sync: Boolean = false) {
 
     private var socket: Socket? = null
     private var input: InputStream? = null
@@ -27,31 +27,47 @@ class ConnectionKeeper {
         endpoint: String,
         auth: String,
         onBroken: () -> Unit,
-        onContinue: (Boolean) -> Unit) {
+        onContinue: (Boolean) -> Unit): Boolean {
 
-        Thread {
-            try {
-                socket = createSocketByEndpoint(endpoint)
-                socket?.soTimeout = 5000 // set time-out for shake hand
-                if (!shakeHand(auth)) {
-                    onContinue(false)
-                }
+        return if (sync) {
+            initializeProcess(endpoint, auth, onBroken, onContinue)
+        } else {
+            Thread {
+                initializeProcess(endpoint, auth, onBroken, onContinue)
+            }.start()
+            true
+        }
+    }
 
-                socket?.soTimeout = 0
-                input = socket?.getInputStream()
-                output = socket?.getOutputStream()
-                running = true
-                thread = Thread {
-                    running = true
-                    loop(onBroken)
-                }
-                thread.start()
-                onContinue(true)
-            } catch (ex: ConnectException) {
-                // connection failed
+    private fun initializeProcess(
+        endpoint: String,
+        auth: String,
+        onBroken: () -> Unit,
+        onContinue: (Boolean) -> Unit): Boolean {
+
+        return try {
+            socket = createSocketByEndpoint(endpoint)
+            socket?.soTimeout = 5000 // set time-out for shake hand
+            if (!shakeHand(auth)) {
                 onContinue(false)
             }
-        }.start()
+
+            socket?.soTimeout = 0
+            input = socket?.getInputStream()
+            output = socket?.getOutputStream()
+            running = true
+            thread = Thread {
+                running = true
+                loop(onBroken)
+            }
+            thread.start()
+            onContinue(true)
+            true
+        } catch (ex: ConnectException) {
+            // connection failed
+            onContinue(false)
+            false
+        }
     }
 
     fun vpnTunAddr(): String {
@@ -73,7 +89,9 @@ class ConnectionKeeper {
             input?.close()
             output?.close()
             socket?.close()
-            thread?.join()
+            if (thread != Thread.currentThread()) {
+                thread.join()
+            }
 
             input = null
             output = null
@@ -116,21 +134,14 @@ class ConnectionKeeper {
     }
 
     private fun replyCommand(): Boolean {
-        try {
+        return try {
             val data = ByteArray(65535)
             val rLen = input?.read(data) ?: 0
-            if (rLen < 0) {
-                // error
-                return false
-            } else if (rLen == 0) {
-                // empty
-            } else {
-                // try reply
-            }
-            return true
+            // error
+            rLen >= 0
         } catch (ex: Exception) {
             // error
-            return false
+            false
         }
     }
 

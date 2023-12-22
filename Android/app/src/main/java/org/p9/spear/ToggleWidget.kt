@@ -1,18 +1,13 @@
 package org.p9.spear
 
-import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
-import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.os.Build
-import android.util.Log
 import android.widget.RemoteViews
-import org.p9.spear.constant.VPN_STATUS_ACTION
 import org.p9.spear.constant.VPN_TOGGLE_ACTION
-import org.p9.spear.entity.ConnectStatus
 
 
 class ToggleWidget : AppWidgetProvider() {

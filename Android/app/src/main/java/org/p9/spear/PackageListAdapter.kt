@@ -1,25 +1,23 @@
 package org.p9.spear
 
 import android.annotation.SuppressLint
-import android.graphics.drawable.BitmapDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.Switch
 import android.widget.TextView
+import androidx.appcompat.widget.SwitchCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.recyclerview.widget.RecyclerView
 
 class PackageListAdapter(
     initChecklist: List<String>,
     private val active: Boolean,
-    onChecklistUpdate: (String, Boolean) -> Unit)
-        : RecyclerView.Adapter<PackageListAdapter.PackageListViewHolder>() {
+    private val onChecklistUpdate: (String, Boolean) -> Unit
+): RecyclerView.Adapter<PackageListAdapter.PackageListViewHolder>() {
 
     private val packageList = mutableListOf<org.p9.spear.entity.Package>()
     private val checklistSet = initChecklist.toMutableSet()
-    private val onChecklistUpdate = onChecklistUpdate
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PackageListViewHolder {
         val itemView = LayoutInflater
@@ -48,6 +46,7 @@ class PackageListAdapter(
 
     override fun getItemCount(): Int = packageList.size
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setPackageList(newList: List<org.p9.spear.entity.Package>) {
         packageList.clear()
         packageList.addAll(newList)
@@ -64,7 +63,7 @@ class PackageListAdapter(
         val icon: ImageView = itemView.findViewById(R.id.package_icon)
         val name: TextView = itemView.findViewById(R.id.package_name)
         @SuppressLint("UseSwitchCompatOrMaterialCode")
-        val switch: Switch = itemView.findViewById(R.id.package_switch)
+        val switch: SwitchCompat = itemView.findViewById(R.id.package_switch)
         init {
             if (active) {
                 switch.setOnCheckedChangeListener { _, isChecked ->

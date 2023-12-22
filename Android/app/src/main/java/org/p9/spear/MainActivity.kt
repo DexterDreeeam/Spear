@@ -21,7 +21,6 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.p9.spear.constant.VPN_END_ACTION
@@ -37,7 +36,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var appVersion: TextView
     private lateinit var appWebsite: TextView
-    private lateinit var debugLoggerButton: TextView
+    private lateinit var appLatest: TextView
     private lateinit var proxyToken: EditText
     private lateinit var actionButton: Button
     private lateinit var modeButton: Button
@@ -70,7 +69,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         appVersion = findViewById(R.id.app_version)
         appWebsite = findViewById(R.id.app_website)
-        debugLoggerButton = findViewById(R.id.debug_logger)
+        appLatest = findViewById(R.id.app_latest)
         proxyToken = findViewById(R.id.proxy_token_editor)
         actionButton = findViewById(R.id.action_button)
         modeButton = findViewById(R.id.mode_button)
@@ -79,11 +78,12 @@ class MainActivity : AppCompatActivity() {
 
         updateStatus(ConnectStatus.Loading)
 
+        val isDebug = applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
         val version = packageManager.getPackageInfo(packageName, 0).versionName +
-            if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
+            if (isDebug) {
+                appLatest.text = getString(R.string.debug)
                 "d"
             } else {
-                debugLoggerButton.isVisible = false
                 "r"
             }
         appVersion.text = version
@@ -94,8 +94,14 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        debugLoggerButton.setOnClickListener {
-            openDebugLogger()
+        appLatest.setOnClickListener {
+            if (isDebug) {
+                openDebugLogger()
+            } else {
+                val url = getString(R.string.app_latest_url)
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                startActivity(intent)
+            }
         }
 
         proxyTokenStr = configureManager.getConnectToken() ?: configureManager.getToken() ?: ""
@@ -143,7 +149,11 @@ class MainActivity : AppCompatActivity() {
         filter.addAction(VPN_STATUS_ACTION)
         filter.addAction(VPN_START_ACTION)
         filter.addAction(VPN_END_ACTION)
-        registerReceiver(notificationReceiver, filter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(notificationReceiver, filter, RECEIVER_EXPORTED)
+        } else {
+            registerReceiver(notificationReceiver, filter)
+        }
         queryVpnServiceStatus()
     }
 
@@ -297,16 +307,14 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("BatteryLife")
     private fun requestNoBatteryOptimize() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val powerManager = getSystemService(POWER_SERVICE) as PowerManager
-            val isIgnoreOptimize = powerManager.isIgnoringBatteryOptimizations(packageName)
-            if (!isIgnoreOptimize) {
-                val intent = Intent(
-                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
-                    Uri.parse("package:$packageName")
-                )
-                startActivity(intent)
-            }
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+        val isIgnoreOptimize = powerManager.isIgnoringBatteryOptimizations(packageName)
+        if (!isIgnoreOptimize) {
+            val intent = Intent(
+                Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                Uri.parse("package:$packageName")
+            )
+            startActivity(intent)
         }
     }
 

@@ -4,5 +4,4 @@ import android.graphics.drawable.Drawable
 
 class Package(
     val name: String,
-    val icon: Drawable) {
-}
+    val icon: Drawable)

@@ -15,8 +15,7 @@ import android.util.Log
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import org.p9.spear.component.ConnectionKeeper
-import org.p9.spear.component.Gateway
-import org.p9.spear.component.IGateway
+import org.p9.spear.component.ConnectionService
 import org.p9.spear.constant.VPN_END_ACTION
 import org.p9.spear.constant.VPN_START_ACTION
 import org.p9.spear.constant.VPN_STATUS_ACTION
@@ -35,7 +34,8 @@ class SpearVpn : VpnService() {
     }
 
     private val configureIntent: PendingIntent by lazy {
-        val activityFlag = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT or FLAG_ACTIVITY_NEW_TASK
+        val activityFlag =
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT or FLAG_ACTIVITY_NEW_TASK
         val intent = Intent(this, SpearVpn::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             PendingIntent.getForegroundService(
@@ -56,7 +56,7 @@ class SpearVpn : VpnService() {
     private var port: String? = null
     private var proxyMode: ProxyMode? = null
     private var appsList: List<String>? = null
-    private var gateway: IGateway? = null
+    private var connectionService: ConnectionService? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -169,6 +169,12 @@ class SpearVpn : VpnService() {
         }
     }
 
+    private fun requestReconnect() {
+        Thread {
+            preConnect()
+        }
+    }
+
     private fun preConnect(): Boolean {
         if (!loadConfigs()) {
             return false
@@ -206,20 +212,33 @@ class SpearVpn : VpnService() {
             return
         }
 
-        vpnInterface = createVpnInterface()
+        if (vpnInterface == null) {
+            vpnInterface = createVpnInterface()
+        }
         if (vpnInterface == null) {
             changeStatus(ConnectStatus.Disconnect)
             return
         }
 
-        if (vpnInterface?.fileDescriptor == null) {
+        val fd = vpnInterface?.fileDescriptor
+        if (fd == null) {
             changeStatus(ConnectStatus.Disconnect)
             return
         }
 
-        val fd = vpnInterface?.fileDescriptor!!
-        gateway = Gateway(this, "$ipAddr:$eptPort")
-        gateway?.start(fd)
+        val endpoint = getEndpoint()
+        if (endpoint == null) {
+            changeStatus(ConnectStatus.Disconnect)
+            return
+        }
+
+        connectionService = ConnectionService(this, fd, endpoint)
+        if (connectionService?.initialize() != true) {
+            connectionService?.close()
+            connectionService = null
+            changeStatus(ConnectStatus.Disconnect)
+            return
+        }
 
         changeStatus(ConnectStatus.Connecting, ConnectStatus.Connected)
     }
@@ -227,15 +246,23 @@ class SpearVpn : VpnService() {
     private fun disconnect() {
         changeStatus(ConnectStatus.Connected, ConnectStatus.Disconnecting)
 
-        gateway?.stop()
+        connectionService?.close()
         vpnInterface?.close()
         connectionKeeper?.stop()
 
-        gateway = null
+        connectionService = null
         vpnInterface = null
         connectionKeeper = null
         changeStatus(ConnectStatus.Disconnect)
         System.gc()
+    }
+
+    private fun getEndpoint(): String? {
+        if (ipAddr == null) {
+            return null
+        }
+        val eptPort: String = connectionKeeper?.vpnTransportPort() ?: return null
+        return "$ipAddr:$eptPort"
     }
 
     private fun createVpnInterface(): ParcelFileDescriptor? {
