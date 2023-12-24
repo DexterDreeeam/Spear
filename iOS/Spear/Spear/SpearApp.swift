@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct SpearApp: App {
+    
+    @State private var home = Home()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            HomeView()
+                .environment(home)
         }
     }
 }
