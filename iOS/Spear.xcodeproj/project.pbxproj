@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B013DA2C2B3B194A00B501F2 /* TunnelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B013DA2A2B39CA6900B501F2 /* TunnelManager.swift */; };
 		B015625B2B384D0B00F44573 /* PackageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B015625A2B384D0B00F44573 /* PackageView.swift */; };
 		B015625E2B384D9400F44573 /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = B015625D2B384D9400F44573 /* Package.swift */; };
 		B01562602B384E8B00F44573 /* PackageList.swift in Sources */ = {isa = PBXBuildFile; fileRef = B015625F2B384E8B00F44573 /* PackageList.swift */; };
@@ -17,8 +18,9 @@
 		B0557C172B333EF7007CCED7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0557C162B333EF7007CCED7 /* Assets.xcassets */; };
 		B0557C1A2B333EF7007CCED7 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0557C192B333EF7007CCED7 /* Preview Assets.xcassets */; };
 		B0557C272B33460D007CCED7 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0557C262B33460D007CCED7 /* NetworkExtension.framework */; };
-		B0557C2A2B33460D007CCED7 /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0557C292B33460D007CCED7 /* PacketTunnelProvider.swift */; };
-		B0557C2F2B33460D007CCED7 /* Tunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B0557C242B33460D007CCED7 /* Tunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B0557C2A2B33460D007CCED7 /* TunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0557C292B33460D007CCED7 /* TunnelProvider.swift */; };
+		B0557C2F2B33460D007CCED7 /* TunnelProvider.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B0557C242B33460D007CCED7 /* TunnelProvider.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B094A6332B3B287900C705CD /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0557C262B33460D007CCED7 /* NetworkExtension.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,7 +29,14 @@
 			containerPortal = B0557C072B333EF5007CCED7 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = B0557C232B33460D007CCED7;
-			remoteInfo = Tunnel;
+			remoteInfo = TunnelProvider;
+		};
+		B094A6312B3B286A00C705CD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B0557C072B333EF5007CCED7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B0557C232B33460D007CCED7;
+			remoteInfo = TunnelProvider;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -38,7 +47,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				B0557C2F2B33460D007CCED7 /* Tunnel.appex in Embed Foundation Extensions */,
+				B0557C2F2B33460D007CCED7 /* TunnelProvider.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -46,6 +55,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B013DA2A2B39CA6900B501F2 /* TunnelManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelManager.swift; sourceTree = "<group>"; };
 		B015625A2B384D0B00F44573 /* PackageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageView.swift; sourceTree = "<group>"; };
 		B015625D2B384D9400F44573 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		B015625F2B384E8B00F44573 /* PackageList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageList.swift; sourceTree = "<group>"; };
@@ -56,11 +66,12 @@
 		B0557C142B333EF5007CCED7 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		B0557C162B333EF7007CCED7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B0557C192B333EF7007CCED7 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		B0557C242B33460D007CCED7 /* Tunnel.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Tunnel.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0557C242B33460D007CCED7 /* TunnelProvider.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TunnelProvider.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B0557C262B33460D007CCED7 /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
-		B0557C292B33460D007CCED7 /* PacketTunnelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnelProvider.swift; sourceTree = "<group>"; };
+		B0557C292B33460D007CCED7 /* TunnelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelProvider.swift; sourceTree = "<group>"; };
 		B0557C2B2B33460D007CCED7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		B0557C2C2B33460D007CCED7 /* Tunnel.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Tunnel.entitlements; sourceTree = "<group>"; };
+		B0557C2C2B33460D007CCED7 /* TunnelProvider.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TunnelProvider.entitlements; sourceTree = "<group>"; };
+		B094A6302B3B27AA00C705CD /* Spear.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Spear.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +79,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B094A6332B3B287900C705CD /* NetworkExtension.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -97,18 +109,27 @@
 				B015625D2B384D9400F44573 /* Package.swift */,
 				B015625F2B384E8B00F44573 /* PackageList.swift */,
 				B01562612B38691300F44573 /* Home.swift */,
-				B01562632B386A1D00F44573 /* ConnectionStatus.swift */,
 			);
 			path = Model;
+			sourceTree = "<group>";
+		};
+		B050C2782B42E515003AC8A9 /* Tunnel */ = {
+			isa = PBXGroup;
+			children = (
+				B013DA2A2B39CA6900B501F2 /* TunnelManager.swift */,
+				B01562632B386A1D00F44573 /* ConnectionStatus.swift */,
+			);
+			path = Tunnel;
 			sourceTree = "<group>";
 		};
 		B0557C062B333EF5007CCED7 = {
 			isa = PBXGroup;
 			children = (
+				B050C2782B42E515003AC8A9 /* Tunnel */,
 				B015625C2B384D6E00F44573 /* Model */,
 				B01562592B384CAF00F44573 /* View */,
 				B0557C112B333EF5007CCED7 /* Spear */,
-				B0557C282B33460D007CCED7 /* Tunnel */,
+				B0557C282B33460D007CCED7 /* TunnelProvider */,
 				B0557C252B33460D007CCED7 /* Frameworks */,
 				B0557C102B333EF5007CCED7 /* Products */,
 			);
@@ -118,7 +139,7 @@
 			isa = PBXGroup;
 			children = (
 				B0557C0F2B333EF5007CCED7 /* Spear.app */,
-				B0557C242B33460D007CCED7 /* Tunnel.appex */,
+				B0557C242B33460D007CCED7 /* TunnelProvider.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -126,6 +147,7 @@
 		B0557C112B333EF5007CCED7 /* Spear */ = {
 			isa = PBXGroup;
 			children = (
+				B094A6302B3B27AA00C705CD /* Spear.entitlements */,
 				B0557C122B333EF5007CCED7 /* SpearApp.swift */,
 				B0557C162B333EF7007CCED7 /* Assets.xcassets */,
 				B0557C182B333EF7007CCED7 /* Preview Content */,
@@ -149,14 +171,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		B0557C282B33460D007CCED7 /* Tunnel */ = {
+		B0557C282B33460D007CCED7 /* TunnelProvider */ = {
 			isa = PBXGroup;
 			children = (
-				B0557C292B33460D007CCED7 /* PacketTunnelProvider.swift */,
+				B0557C292B33460D007CCED7 /* TunnelProvider.swift */,
 				B0557C2B2B33460D007CCED7 /* Info.plist */,
-				B0557C2C2B33460D007CCED7 /* Tunnel.entitlements */,
+				B0557C2C2B33460D007CCED7 /* TunnelProvider.entitlements */,
 			);
-			path = Tunnel;
+			path = TunnelProvider;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -175,15 +197,16 @@
 			);
 			dependencies = (
 				B0557C2E2B33460D007CCED7 /* PBXTargetDependency */,
+				B094A6322B3B286A00C705CD /* PBXTargetDependency */,
 			);
 			name = Spear;
 			productName = Spear;
 			productReference = B0557C0F2B333EF5007CCED7 /* Spear.app */;
 			productType = "com.apple.product-type.application";
 		};
-		B0557C232B33460D007CCED7 /* Tunnel */ = {
+		B0557C232B33460D007CCED7 /* TunnelProvider */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B0557C332B33460D007CCED7 /* Build configuration list for PBXNativeTarget "Tunnel" */;
+			buildConfigurationList = B0557C332B33460D007CCED7 /* Build configuration list for PBXNativeTarget "TunnelProvider" */;
 			buildPhases = (
 				B0557C202B33460D007CCED7 /* Sources */,
 				B0557C212B33460D007CCED7 /* Frameworks */,
@@ -193,9 +216,9 @@
 			);
 			dependencies = (
 			);
-			name = Tunnel;
-			productName = Tunnel;
-			productReference = B0557C242B33460D007CCED7 /* Tunnel.appex */;
+			name = TunnelProvider;
+			productName = TunnelProvider;
+			productReference = B0557C242B33460D007CCED7 /* TunnelProvider.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -230,7 +253,7 @@
 			projectRoot = "";
 			targets = (
 				B0557C0E2B333EF5007CCED7 /* Spear */,
-				B0557C232B33460D007CCED7 /* Tunnel */,
+				B0557C232B33460D007CCED7 /* TunnelProvider */,
 			);
 		};
 /* End PBXProject section */
@@ -266,6 +289,7 @@
 				B0557C132B333EF5007CCED7 /* SpearApp.swift in Sources */,
 				B01562622B38691300F44573 /* Home.swift in Sources */,
 				B01562602B384E8B00F44573 /* PackageList.swift in Sources */,
+				B013DA2C2B3B194A00B501F2 /* TunnelManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -273,7 +297,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B0557C2A2B33460D007CCED7 /* PacketTunnelProvider.swift in Sources */,
+				B0557C2A2B33460D007CCED7 /* TunnelProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -282,8 +306,13 @@
 /* Begin PBXTargetDependency section */
 		B0557C2E2B33460D007CCED7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = B0557C232B33460D007CCED7 /* Tunnel */;
+			target = B0557C232B33460D007CCED7 /* TunnelProvider */;
 			targetProxy = B0557C2D2B33460D007CCED7 /* PBXContainerItemProxy */;
+		};
+		B094A6322B3B286A00C705CD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B0557C232B33460D007CCED7 /* TunnelProvider */;
+			targetProxy = B094A6312B3B286A00C705CD /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -413,12 +442,15 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Spear/Spear.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Spear/Preview Content\"";
 				DEVELOPMENT_TEAM = 2778M7UL9J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Spear;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -431,6 +463,9 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = P9.Spear;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -443,12 +478,15 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Spear/Spear.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Spear/Preview Content\"";
 				DEVELOPMENT_TEAM = 2778M7UL9J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Spear;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -461,6 +499,9 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = P9.Spear;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -470,13 +511,13 @@
 		B0557C312B33460D007CCED7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Tunnel/Tunnel.entitlements;
+				CODE_SIGN_ENTITLEMENTS = TunnelProvider/TunnelProvider.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2778M7UL9J;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Tunnel/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Tunnel;
+				INFOPLIST_FILE = TunnelProvider/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TunnelProvider;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -484,9 +525,12 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = P9.Spear.Tunnel;
+				PRODUCT_BUNDLE_IDENTIFIER = P9.Spear.TunnelProvider;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -496,13 +540,13 @@
 		B0557C322B33460D007CCED7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Tunnel/Tunnel.entitlements;
+				CODE_SIGN_ENTITLEMENTS = TunnelProvider/TunnelProvider.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2778M7UL9J;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Tunnel/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Tunnel;
+				INFOPLIST_FILE = TunnelProvider/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TunnelProvider;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -510,9 +554,12 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = P9.Spear.Tunnel;
+				PRODUCT_BUNDLE_IDENTIFIER = P9.Spear.TunnelProvider;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -540,7 +587,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		B0557C332B33460D007CCED7 /* Build configuration list for PBXNativeTarget "Tunnel" */ = {
+		B0557C332B33460D007CCED7 /* Build configuration list for PBXNativeTarget "TunnelProvider" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B0557C312B33460D007CCED7 /* Debug */,

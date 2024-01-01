@@ -10,6 +10,8 @@ import Foundation
 @Observable
 class Home {
     
+    let tunnelManager = TunnelManager()
+    
     var appTitle = "Spear"
     var appVersion = "2023.12.20d"
     var appWeb = "About"
@@ -22,14 +24,17 @@ class Home {
     
     func onActionButton() {
         if status == ConnectionStatus.Disconnect {
+            print("click to connect")
             connect()
         }
         else if status == ConnectionStatus.Connected {
+            print("click to disconnect")
             disconnect()
         }
     }
     
     func connect() {
+        tunnelManager.startService()
         status = ConnectionStatus.Connected
     }
     
