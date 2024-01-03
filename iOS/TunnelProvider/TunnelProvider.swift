@@ -61,6 +61,10 @@ class TunnelProvider: NEPacketTunnelProvider {
     }
     
     private func loop() {
+        packetFlow.readPackets { [self] packets, protocols in
+            // todo
+        }
         
+        packetFlow.writePackets([], withProtocols: [NSNumber(value: AF_INET)])
     }
 }

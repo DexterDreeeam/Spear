@@ -13,6 +13,9 @@
 		B01562602B384E8B00F44573 /* PackageList.swift in Sources */ = {isa = PBXBuildFile; fileRef = B015625F2B384E8B00F44573 /* PackageList.swift */; };
 		B01562622B38691300F44573 /* Home.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01562612B38691300F44573 /* Home.swift */; };
 		B01562642B386A1D00F44573 /* ConnectionStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = B01562632B386A1D00F44573 /* ConnectionStatus.swift */; };
+		B04566352B45A04600BC6C16 /* Gateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04566342B45A04600BC6C16 /* Gateway.swift */; };
+		B04566372B45AC4900BC6C16 /* Port.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04566362B45AC4900BC6C16 /* Port.swift */; };
+		B04566392B45ACFC00BC6C16 /* Packet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B04566382B45ACFC00BC6C16 /* Packet.swift */; };
 		B0557C132B333EF5007CCED7 /* SpearApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0557C122B333EF5007CCED7 /* SpearApp.swift */; };
 		B0557C152B333EF5007CCED7 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0557C142B333EF5007CCED7 /* HomeView.swift */; };
 		B0557C172B333EF7007CCED7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0557C162B333EF7007CCED7 /* Assets.xcassets */; };
@@ -61,6 +64,9 @@
 		B015625F2B384E8B00F44573 /* PackageList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackageList.swift; sourceTree = "<group>"; };
 		B01562612B38691300F44573 /* Home.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Home.swift; sourceTree = "<group>"; };
 		B01562632B386A1D00F44573 /* ConnectionStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionStatus.swift; sourceTree = "<group>"; };
+		B04566342B45A04600BC6C16 /* Gateway.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gateway.swift; sourceTree = "<group>"; };
+		B04566362B45AC4900BC6C16 /* Port.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Port.swift; sourceTree = "<group>"; };
+		B04566382B45ACFC00BC6C16 /* Packet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Packet.swift; sourceTree = "<group>"; };
 		B0557C0F2B333EF5007CCED7 /* Spear.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Spear.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B0557C122B333EF5007CCED7 /* SpearApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpearApp.swift; sourceTree = "<group>"; };
 		B0557C142B333EF5007CCED7 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -177,6 +183,9 @@
 				B0557C292B33460D007CCED7 /* TunnelProvider.swift */,
 				B0557C2B2B33460D007CCED7 /* Info.plist */,
 				B0557C2C2B33460D007CCED7 /* TunnelProvider.entitlements */,
+				B04566342B45A04600BC6C16 /* Gateway.swift */,
+				B04566362B45AC4900BC6C16 /* Port.swift */,
+				B04566382B45ACFC00BC6C16 /* Packet.swift */,
 			);
 			path = TunnelProvider;
 			sourceTree = "<group>";
@@ -297,7 +306,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B04566372B45AC4900BC6C16 /* Port.swift in Sources */,
+				B04566352B45A04600BC6C16 /* Gateway.swift in Sources */,
 				B0557C2A2B33460D007CCED7 /* TunnelProvider.swift in Sources */,
+				B04566392B45ACFC00BC6C16 /* Packet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
