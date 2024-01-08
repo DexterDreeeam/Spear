@@ -24,6 +24,10 @@
 		B0557C2A2B33460D007CCED7 /* TunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0557C292B33460D007CCED7 /* TunnelProvider.swift */; };
 		B0557C2F2B33460D007CCED7 /* TunnelProvider.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B0557C242B33460D007CCED7 /* TunnelProvider.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		B094A6332B3B287900C705CD /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0557C262B33460D007CCED7 /* NetworkExtension.framework */; };
+		B0F9BC142B4C3A3E00F2D034 /* ConnectionKeeper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0F9BC132B4C3A3E00F2D034 /* ConnectionKeeper.swift */; };
+		B0F9BC162B4C42A100F2D034 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0F9BC152B4C42A100F2D034 /* Utils.swift */; };
+		B0F9BC182B4C458400F2D034 /* ConnectionInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0F9BC172B4C458400F2D034 /* ConnectionInfo.swift */; };
+		B0F9BC1A2B4C485F00F2D034 /* ConnectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0F9BC192B4C485F00F2D034 /* ConnectionService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -78,6 +82,10 @@
 		B0557C2B2B33460D007CCED7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B0557C2C2B33460D007CCED7 /* TunnelProvider.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TunnelProvider.entitlements; sourceTree = "<group>"; };
 		B094A6302B3B27AA00C705CD /* Spear.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Spear.entitlements; sourceTree = "<group>"; };
+		B0F9BC132B4C3A3E00F2D034 /* ConnectionKeeper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionKeeper.swift; sourceTree = "<group>"; };
+		B0F9BC152B4C42A100F2D034 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
+		B0F9BC172B4C458400F2D034 /* ConnectionInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionInfo.swift; sourceTree = "<group>"; };
+		B0F9BC192B4C485F00F2D034 /* ConnectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -186,6 +194,10 @@
 				B04566342B45A04600BC6C16 /* Gateway.swift */,
 				B04566362B45AC4900BC6C16 /* Port.swift */,
 				B04566382B45ACFC00BC6C16 /* Packet.swift */,
+				B0F9BC132B4C3A3E00F2D034 /* ConnectionKeeper.swift */,
+				B0F9BC152B4C42A100F2D034 /* Utils.swift */,
+				B0F9BC172B4C458400F2D034 /* ConnectionInfo.swift */,
+				B0F9BC192B4C485F00F2D034 /* ConnectionService.swift */,
 			);
 			path = TunnelProvider;
 			sourceTree = "<group>";
@@ -307,9 +319,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				B04566372B45AC4900BC6C16 /* Port.swift in Sources */,
+				B0F9BC182B4C458400F2D034 /* ConnectionInfo.swift in Sources */,
+				B0F9BC142B4C3A3E00F2D034 /* ConnectionKeeper.swift in Sources */,
+				B0F9BC1A2B4C485F00F2D034 /* ConnectionService.swift in Sources */,
 				B04566352B45A04600BC6C16 /* Gateway.swift in Sources */,
 				B0557C2A2B33460D007CCED7 /* TunnelProvider.swift in Sources */,
 				B04566392B45ACFC00BC6C16 /* Packet.swift in Sources */,
+				B0F9BC162B4C42A100F2D034 /* Utils.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
