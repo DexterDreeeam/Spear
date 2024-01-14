@@ -34,7 +34,7 @@ class ConnectionKeeper {
         hints.ai_family = AF_INET
         hints.ai_socktype = SOCK_STREAM
         
-        guard getaddrinfo("123.123.123.123", "12345", &hints, &serverInfo) == 0 else {
+        guard getaddrinfo("20.2.219.253", "22333", &hints, &serverInfo) == 0 else {
             perror("Error in getaddrinfo")
             return false
         }

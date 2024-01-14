@@ -20,7 +20,7 @@ public class TunnelManager {
     func startService() {
         print("TunnelManager startService")
         if providerMgr != nil {
-            enableConnection()
+            enableConnection(mgr: providerMgr!)
         } else {
             loadTunnelProviderMgr()
         }
@@ -35,8 +35,7 @@ public class TunnelManager {
             }
             if mgrs!.count > 0 {
                 print("TunnelManager has previous manager")
-                providerMgr = mgrs?.first
-                enableConnection()
+                enableConnection(mgr: mgrs!.first!)
             } else {
                 print("TunnelManager has no manager, to create one")
                 let mgr = NETunnelProviderManager()
@@ -47,7 +46,7 @@ public class TunnelManager {
                     }
                     let config = NETunnelProviderProtocol()
                     config.providerBundleIdentifier = "\(Bundle.main.bundleIdentifier!).TunnelProvider"
-                    config.serverAddress = "20.255.49.236"
+                    config.serverAddress = "20.2.219.253"
                     config.includeAllNetworks = true
                     config.providerConfiguration = [
                         "port": 22333
@@ -58,8 +57,7 @@ public class TunnelManager {
                         if err != nil {
                             print("mgr.saveToPreferences err")
                         } else {
-                            providerMgr = mgr
-                            enableConnection()
+                            enableConnection(mgr: mgr)
                         }
                     }
                 }
@@ -67,20 +65,21 @@ public class TunnelManager {
         }
     }
     
-    private func enableConnection() {
+    private func enableConnection(mgr: NETunnelProviderManager) {
         print("TunnelManager enableConnection")
-        guard let mgr = providerMgr else {
-            print("providerMgr is nil err")
-            return
-        }
+        providerMgr = mgr
         mgr.isEnabled = true
+        
+        print("mgr.saveToPreferences before")
         mgr.saveToPreferences { err in
+            print("mgr.saveToPreferences enter")
             if err != nil {
                 print("mgr.saveToPreferences err")
                 return
             }
             if mgr.connection.status == .disconnected {
                 do {
+                    print("mgr.connection.startVPNTunnel enter")
                     try mgr.connection.startVPNTunnel()
                     print("mgr.connection.startVPNTunnel success")
                 } catch {

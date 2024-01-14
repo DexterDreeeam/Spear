@@ -161,8 +161,8 @@
 		B0557C112B333EF5007CCED7 /* Spear */ = {
 			isa = PBXGroup;
 			children = (
-				B094A6302B3B27AA00C705CD /* Spear.entitlements */,
 				B0557C122B333EF5007CCED7 /* SpearApp.swift */,
+				B094A6302B3B27AA00C705CD /* Spear.entitlements */,
 				B0557C162B333EF7007CCED7 /* Assets.xcassets */,
 				B0557C182B333EF7007CCED7 /* Preview Content */,
 			);
@@ -188,18 +188,34 @@
 		B0557C282B33460D007CCED7 /* TunnelProvider */ = {
 			isa = PBXGroup;
 			children = (
+				B06024762B52E7AA001AE0D2 /* Entity */,
+				B06024752B52E761001AE0D2 /* Component */,
 				B0557C292B33460D007CCED7 /* TunnelProvider.swift */,
-				B0557C2B2B33460D007CCED7 /* Info.plist */,
 				B0557C2C2B33460D007CCED7 /* TunnelProvider.entitlements */,
+				B0557C2B2B33460D007CCED7 /* Info.plist */,
+			);
+			path = TunnelProvider;
+			sourceTree = "<group>";
+		};
+		B06024752B52E761001AE0D2 /* Component */ = {
+			isa = PBXGroup;
+			children = (
+				B0F9BC172B4C458400F2D034 /* ConnectionInfo.swift */,
+				B0F9BC132B4C3A3E00F2D034 /* ConnectionKeeper.swift */,
+				B0F9BC192B4C485F00F2D034 /* ConnectionService.swift */,
+			);
+			path = Component;
+			sourceTree = "<group>";
+		};
+		B06024762B52E7AA001AE0D2 /* Entity */ = {
+			isa = PBXGroup;
+			children = (
 				B04566342B45A04600BC6C16 /* Gateway.swift */,
 				B04566362B45AC4900BC6C16 /* Port.swift */,
 				B04566382B45ACFC00BC6C16 /* Packet.swift */,
-				B0F9BC132B4C3A3E00F2D034 /* ConnectionKeeper.swift */,
 				B0F9BC152B4C42A100F2D034 /* Utils.swift */,
-				B0F9BC172B4C458400F2D034 /* ConnectionInfo.swift */,
-				B0F9BC192B4C485F00F2D034 /* ConnectionService.swift */,
 			);
-			path = TunnelProvider;
+			path = Entity;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
